@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>App testing</title>
+
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="../Styles/Semantic-UI-CSS-master/semantic.js"></script>
+
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css">
+    <link rel="stylesheet" href="../Styles/Semantic-UI-CSS-master/semantic.css" type="text/css">
+    <link rel="stylesheet" href="../Styles/test.css" type="text/css">
+
+</head>
+
+<body>
+
+    <!--
+    <div class="ui right vertical menu wide sidebar">
+    </div>
+-->
+    <div class="ui very wide right sidebar">
+        <div class="sidemenu-top ui fixed large black vertical icon buttons">
+            <button class="ui button"><i class="list layout icon"></i></button>
+            <button class="ui button"><i class="edit icon"></i></button>
+            <button class="ui button"><i class="upload icon"></i></button>
+            <button class="ui button"><i class="download icon"></i></button>
+            <button class="ui button"><i class="help circle icon"></i></button>
+        </div>
+        <div class="sidemenu-bottom ui fixed large black vertical icon buttons">
+            <button id="zoom-in" class="ui button"><i class="plus icon"></i></button>
+            <button id="zoom-out" class="ui button"><i class="minus icon"></i></button>
+        </div>
+        <div class="sidebar-panel ui container">
+            <div class="sidebar-panel-heading">
+                <h5 class="sidebar-panel-title ui header">
+                    <i class="sidebar-panel-icon remove icon"></i>
+                    <div class="content">Info goes here</div>                
+                </h5>
+            </div>
+            <div class="sidebar-panel-body">
+            </div>
+        </div>
+    </div>
+
+    <div class="map pusher">
+        <div id="map" class="map"></div>
+    </div>
+
+
+
+
+
+    <script>
+        /****************************  Define Map Layers and Map  *****************************/
+
+
+        $('.sidemenu-top').click(function () {
+            //            $('.ui.fixed.icon.buttons').animate({
+            //                right: '473px'
+            //            }, 400);
+            $('.ui.sidebar').sidebar({
+                    transition: 'overlay',
+                    dimPage: false,
+                    closable: false,
+                })
+                .sidebar('show');
+        });
+
+        $('.remove').click(function () {
+            //            $('.ui.fixed.icon.buttons').animate({
+            //                right: '0'
+            //            });
+            $(".ui.sidebar").sidebar('hide');
+        });
+
+        //        $('.sidemenu-top').click(function () {
+        //            $('.ui.sidebar').sidebar()
+        //                .sidebar('attach events', '.sidemenu-top');
+        //        });
+
+
+        // Basemap layer, OSM source
+        //
+        var OSM_layer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+
+        // Set view and zoom, set for Canada
+        //
+        var view = new ol.View({
+            center: [-10997148, 9919099],
+            zoom: 3
+        });
+
+        // Create map, point to target div
+        //
+        var map = new ol.Map({
+            controls: [],
+            interactions: ol.interaction.defaults({
+                doubleClickZoom: false
+            }),
+            layers: [OSM_layer],
+            target: 'map',
+            view: view
+        })
+
+        var target = document.getElementById('target');
+
+
+
+        // Create Style for later
+        //
+        var myStyle = new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,100,50,.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(255,100,50,1)'
+            })
+        });
+
+        $('#zoom-in').click(function () {
+            var $zoom = ol.animation.zoom({
+                resolution: map.getView().getResolution()
+            });
+            map.beforeRender($zoom);
+            map.getView().setResolution(map.getView().getResolution() * 0.5);
+        });
+
+        $('#zoom-out').click(function () {
+            var $zoom = ol.animation.zoom({
+                resolution: map.getView().getResolution()
+            });
+            map.beforeRender($zoom);
+            map.getView().setResolution(map.getView().getResolution() * 2);
+        });
+    </script>
+</body>
+
+</html>
