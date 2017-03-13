@@ -32318,6 +32318,11 @@ Floated Menu / Item
      visibility: visible !important;
      overflow-y: visible !important;
  }
+ 
+ .ui.visible.wide.right.overlay.sidebar {
+     border: solid #d9d9d9;
+     border-width: 1px;
+ }
  /*******************************
          Site Overrides
 *******************************/
