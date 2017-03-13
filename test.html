@@ -84,11 +84,160 @@
             $(".ui.sidebar").sidebar('hide');
         });
 
-        //        $('.sidemenu-top').click(function () {
-        //            $('.ui.sidebar').sidebar()
-        //                .sidebar('attach events', '.sidemenu-top');
-        //        });
+<body>
 
+    <!--
+    <div class="ui right vertical menu wide sidebar">
+    </div>
+-->
+    <div id="sidebar" class="ui very wide right sidebar">
+        <div class="sidemenu-top ui fixed large black vertical icon buttons">
+            <button id="layer-options" class="open-panel ui button" data-content="Layer options" data-variation="mini inverted" data-position="left center"><i class="list layout icon"></i></button>
+            <button id="drawing-tools" class="open-panel ui button" data-content="Drawing tools" data-variation="mini inverted" data-position="left center"><i class="edit icon"></i></button>
+            <button id="upload-shapefile" class="open-panel ui button" data-content="Upload shapefile" data-variation="mini inverted" data-position="left center"><i class="upload icon"></i></button>
+            <button id="download-data" class="open-panel ui button" data-content="Download data" data-variation="mini inverted" data-position="left center"><i class="download icon"></i></button>
+            <button id="help" class="open-panel ui button" data-content="Help" data-variation="mini inverted" data-position="left center"><i class="help circle icon"></i></button>
+        </div>
+        <div class="sidemenu-bottom ui fixed large black vertical icon buttons">
+            <button id="zoom-in" class="ui button"><i class="plus icon"></i></button>
+            <button id="zoom-out" class="ui button"><i class="minus icon"></i></button>
+        </div>
+
+        <div class="sidebar-panel ui container">
+            <div id="layer-options-panel" class="info-panel">
+                <div class="sidebar-panel-heading">
+                    <h4 class="sidebar-panel-title">
+                        <span>Layer Properties</span>
+                    </h4>
+                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
+                </div>
+                <div class="sidebar-panel-body">
+                    <p id="border-test">info goes in here</p>
+                </div>
+            </div>
+
+            <div id="drawing-tools-panel" class="info-panel">
+                <div class="sidebar-panel-heading">
+                    <h4 class="sidebar-panel-title">
+                        <span>Drawing Tools</span>
+                    </h4>
+                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
+                </div>
+                <div class="sidebar-panel-body">
+                    <p id="border-test">info goes in here as well</p>
+                </div>
+            </div>
+
+            <div id="upload-shapefile-panel" class="info-panel">
+                <div class="sidebar-panel-heading">
+                    <h4 class="sidebar-panel-title">
+                        <span>Upload your Shapefile</span>
+                    </h4>
+                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
+                </div>
+                <div class="sidebar-panel-body">
+                    <p id="border-test">info goes in here as well</p>
+                </div>
+            </div>
+
+            <div id="download-data-panel" class="info-panel">
+                <div class="sidebar-panel-heading">
+                    <h4 class="sidebar-panel-title">
+                        <span>Download some data here</span>
+                    </h4>
+                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
+                </div>
+                <div class="sidebar-panel-body">
+                    <p id="border-test">info goes in here as well</p>
+                </div>
+            </div>
+
+            <div id="help-panel" class="info-panel">
+                <div class="sidebar-panel-heading">
+                    <h4 class="sidebar-panel-title">
+                        <span>Help</span>
+                    </h4>
+                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
+                </div>
+                <div class="sidebar-panel-body">
+                    <p id="border-test">Find solace in these words</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="map pusher">
+        <div id="map" class="map"></div>
+    </div>
+    </div>
+
+
+
+
+
+    <script>
+        /****************************  Define CSS and interactivity  *****************************/
+
+
+        // Semantic UI jQuery dependency codes
+        // we use this in conjunction with Semantic UI for functionality and look
+        //
+        $('.sidemenu-top').click(function () {
+            $('.ui.sidebar').sidebar({
+                    transition: 'overlay',
+                    dimPage: false,
+                    closable: false,
+                })
+                .sidebar('show');
+        });
+
+        $('.sidebar-panel-icon').click(function () {
+            $(".ui.sidebar").sidebar('hide');
+        });
+
+
+        // Gives us tooltips on buttons
+        //
+        $('.ui.button').popup();
+
+
+        // Open an information panel with menu button click    
+        //
+        function closeAllPanels() {
+            $('.info-panel').each(function (i) {
+                $(this).addClass('hidden');
+            })
+        };
+
+        [].forEach.call(document.querySelectorAll(".open-panel"), function (el) {
+            el.addEventListener("click", function () {
+                closeAllPanels();
+                var id = '#' + el.id + '-panel';
+                $(id).removeClass('hidden');
+            });
+        });
+
+
+        // Create custom zoom controls
+        //
+        $('#zoom-in').click(function () {
+            var $zoom = ol.animation.zoom({
+                resolution: map.getView().getResolution()
+            });
+            map.beforeRender($zoom);
+            map.getView().setResolution(map.getView().getResolution() * 0.5);
+        });
+
+        $('#zoom-out').click(function () {
+            var $zoom = ol.animation.zoom({
+                resolution: map.getView().getResolution()
+            });
+            map.beforeRender($zoom);
+            map.getView().setResolution(map.getView().getResolution() * 2);
+        });
+
+        /****************************  Define Map Layers and Map  *****************************/
 
         // Basemap layer, OSM source
         //
@@ -128,22 +277,6 @@
             stroke: new ol.style.Stroke({
                 color: 'rgba(255,100,50,1)'
             })
-        });
-
-        $('#zoom-in').click(function () {
-            var $zoom = ol.animation.zoom({
-                resolution: map.getView().getResolution()
-            });
-            map.beforeRender($zoom);
-            map.getView().setResolution(map.getView().getResolution() * 0.5);
-        });
-
-        $('#zoom-out').click(function () {
-            var $zoom = ol.animation.zoom({
-                resolution: map.getView().getResolution()
-            });
-            map.beforeRender($zoom);
-            map.getView().setResolution(map.getView().getResolution() * 2);
         });
     </script>
 </body>
