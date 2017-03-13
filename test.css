@@ -1,22 +1,56 @@
+/*
+Basemap controls
+*/
+
 .map {
-    bottom: 0;    
+    bottom: 0;
     height: 100%;
     width: 100%;
     z-index: 0;
 }
 
+
+/*  
+Sidebar menu buttons
+*/
+
 .sidemenu-top {
     border-radius: 4px 0px 0px 4px;
     margin-left: -44px !important;
     position: fixed;
-    top: 5%;
+    top: 3%;
 }
 
 .sidemenu-bottom {
     border-radius: 4px 0px 0px 4px;
-    bottom: 5%;
+    bottom: 3%;
     margin-left: -44px !important;
     position: fixed;
+}
+
+.ui.black.buttons .button,
+.ui.black.button {
+    background-color: #404040;
+}
+
+.ui.black.buttons .button:focus,
+.ui.black.button:focus {
+    background-color: #b30000;
+}
+
+.ui.black.buttons .button:focus:hover,
+.ui.black.button:focus:hover {
+    background-color: #990000;
+}
+
+.sidemenu-bottom.ui.black.buttons .button:focus,
+.sidemenu-bottom.ui.black.button:focus {
+    background-color: #404040;
+}
+
+.sidemenu-bottom.ui.black.buttons .button:focus:hover,
+.sidemenu-bottom.ui.black.button:focus:hover {
+    background-color: #27292a;
 }
 
 .ui.vertical.buttons .button:first-child {
@@ -27,25 +61,41 @@
     border-bottom-right-radius: 0;
 }
 
+
+/*
+Sidebar panel
+*/
+
 .sidebar-panel {
     background-color: white;
     color: #333;
     height: 100% !important;
-    width: 100% !important;    
+    width: 100% !important;
 }
 
-.ui.container {
+.hidden {
+    display: none;
 }
+
+
+/*
+Sidebar panel title and close icon
+*/
 
 .sidebar-panel-heading {
-    background-color: #f5f5f5; 
-    padding: 10px;
-    position: relative;  
+    background-color: #f5f5f5;
+    border-bottom: solid #d9d9d9;
+    border-width: 1px;
+    height: 40px;
+    padding: 10px 15px 10px 15px;
+    position: relative;
     width: 100%;
 }
 
 .sidebar-panel-title {
     display: inline-block;
+    font-weight: 500;
+    line-height: 20px;
     margin-bottom: 0px;
 }
 
@@ -53,29 +103,51 @@
     box-shadow: none;
     border: none;
     cursor: pointer;
-    display: block;
-    float: right;
-    top: 0;
+    padding: 10px 15px 10px 15px;
+    position: absolute;
     right: 0;
+    top: 0;
 }
 
-/*.disabled.remove.icon::before::hover {
-    color: #333;
-}*/
+.remove.icon {
+    opacity: 0.45;
+}
+
+.sidebar-panel-icon:hover .remove.icon {
+    opacity: 1;
+}
 
 .sidebar-panel-icon .ui.basic.button {
     box-shadow: 0px 0px 0px 0px;
 }
 
+
+/*
+Sidebar panel information body
+*/
+
+#sidebar,
+.ui.sidebar.right.overlay {
+    /*
+    border-color: #333;
+    border-width: 5px;
+*/
+    width: 30% !important;
+}
+
 .sidebar-panel-body {
     background-color: white;
     height: 100% !important;
+    padding: 10px 15px 10px 15px;
     width: 100% !important;
+    text-overflow: clip;
 }
 
-
-#sidebar, .ui.sidebar.right.overlay{
-    border-color: #333;
-    border-width: 5px;
-    width: 30% !important/*;
-*/}
+#border-test {
+    font-weight: 700;
+    /*
+    border-width: 2px;
+    border-color: solid black;
+    border-bottom-style: solid black !important;
+*/
+}
