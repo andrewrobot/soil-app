@@ -9,6 +9,15 @@ Basemap controls
     z-index: 0;
 }
 
+.ol-scale-line {
+    background: none;
+}
+
+.ol-scale-line-inner {
+    color: #404040;
+    border-color: #404040;
+}
+
 
 /*  
 Sidebar menu buttons
@@ -61,6 +70,9 @@ Sidebar menu buttons
     border-bottom-right-radius: 0;
 }
 
+.clicked {
+    background-color: #b30000;
+}
 
 /*
 Sidebar panel
@@ -132,7 +144,7 @@ Sidebar panel information body
     border-color: #333;
     border-width: 5px;
 */
-    width: 30% !important;
+    width: 27% !important;
 }
 
 .sidebar-panel-body {
