@@ -15,82 +15,9 @@
     <link rel="stylesheet" href="../Styles/test.css" type="text/css">
 
 </head>
-
 <body>
 
-    <!--
-    <div class="ui right vertical menu wide sidebar">
-    </div>
--->
-    <div id="sidebar" class="ui very wide right sidebar">
-        <div class="sidemenu-top ui fixed large black vertical icon buttons">
-            <button class="ui button"><i class="list layout icon"></i></button>
-            <button class="ui button"><i class="edit icon"></i></button>
-            <button class="ui button"><i class="upload icon"></i></button>
-            <button class="ui button"><i class="download icon"></i></button>
-            <button class="ui button"><i class="help circle icon"></i></button>
-        </div>
-        <div class="sidemenu-bottom ui fixed large black vertical icon buttons">
-            <button id="zoom-in" class="ui button"><i class="plus icon"></i></button>
-            <button id="zoom-out" class="ui button"><i class="minus icon"></i></button>
-        </div>
-        <div class="sidebar-panel ui container">
-            <div class="sidebar-panel-heading">
-                <h5 class="sidebar-panel-title">
-                    <span>Panel Heading Title</span>
-                </h5>  
-                <span class="sidebar-panel-icon"><i class="disabled remove icon"></i></span>
-                <!-- <h5 class="sidebar-panel-title">                    
-                    <span class="content">Info goes here</span> 
-                </h5>
-                <div class="sidebar-panel-icon ui small basic button">
-                    <i class="remove icon"></i>
-                </div> -->               
-            </div>
-            <div class="sidebar-panel-body">
-                <p>info goes in here as well</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="map pusher">
-        <div id="map" class="map"></div>
-    </div>
-
-
-
-
-
-    <script>
-        /****************************  Define Map Layers and Map  *****************************/
-
-
-        $('.sidemenu-top').click(function () {
-            //            $('.ui.fixed.icon.buttons').animate({
-            //                right: '473px'
-            //            }, 400);
-            $('.ui.sidebar').sidebar({
-                    transition: 'overlay',
-                    dimPage: false,
-                    closable: false,
-                })
-                .sidebar('show');
-        });
-
-        $('.remove').click(function () {
-            //            $('.ui.fixed.icon.buttons').animate({
-            //                right: '0'
-            //            });
-            $(".ui.sidebar").sidebar('hide');
-        });
-
-<body>
-
-    <!--
-    <div class="ui right vertical menu wide sidebar">
-    </div>
--->
-    <div id="sidebar" class="ui very wide right sidebar">
+     <div id="sidebar" class="ui very wide right sidebar">
         <div class="sidemenu-top ui fixed large black vertical icon buttons">
             <button id="layer-options" class="open-panel ui button" data-content="Layer options" data-variation="mini inverted" data-position="left center"><i class="list layout icon"></i></button>
             <button id="drawing-tools" class="open-panel ui button" data-content="Drawing tools" data-variation="mini inverted" data-position="left center"><i class="edit icon"></i></button>
@@ -102,157 +29,9 @@
             <button id="zoom-in" class="ui button"><i class="plus icon"></i></button>
             <button id="zoom-out" class="ui button"><i class="minus icon"></i></button>
         </div>
-
-        <div class="sidebar-panel ui container">
-            <div id="layer-options-panel" class="info-panel">
-                <div class="sidebar-panel-heading">
-                    <h4 class="sidebar-panel-title">
-                        <span>Layer Properties</span>
-                    </h4>
-                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
-                </div>
-                <div class="sidebar-panel-body">
-                    <p id="border-test">info goes in here</p>
-                </div>
-            </div>
-
-            <div id="drawing-tools-panel" class="info-panel">
-                <div class="sidebar-panel-heading">
-                    <h4 class="sidebar-panel-title">
-                        <span>Drawing Tools</span>
-                    </h4>
-                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
-                </div>
-                <div class="sidebar-panel-body">
-                    <p id="border-test">info goes in here as well</p>
-                </div>
-            </div>
-
-            <div id="upload-shapefile-panel" class="info-panel">
-                <div class="sidebar-panel-heading">
-                    <h4 class="sidebar-panel-title">
-                        <span>Upload your Shapefile</span>
-                    </h4>
-                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
-                </div>
-                <div class="sidebar-panel-body">
-                    <p id="border-test">info goes in here as well</p>
-                </div>
-            </div>
-
-            <div id="download-data-panel" class="info-panel">
-                <div class="sidebar-panel-heading">
-                    <h4 class="sidebar-panel-title">
-                        <span>Download some data here</span>
-                    </h4>
-                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
-                </div>
-                <div class="sidebar-panel-body">
-                    <p id="border-test">info goes in here as well</p>
-                </div>
-            </div>
-
-            <div id="help-panel" class="info-panel">
-                <div class="sidebar-panel-heading">
-                    <h4 class="sidebar-panel-title">
-                        <span>Help</span>
-                    </h4>
-                    <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
-                </div>
-                <div class="sidebar-panel-body">
-                    <p id="border-test">Find solace in these words</p>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="map pusher">
-        <div id="map" class="map"></div>
-    </div>
-    </div>
-
-
-
-
-
-    <script>
-        /****************************  Define CSS and interactivity  *****************************/
-
-
-        // Semantic UI jQuery dependency codes
-        // we use this in conjunction with Semantic UI for functionality and look
-        //
-        $('.sidemenu-top').click(function () {
-            $('.ui.sidebar').sidebar({
-                    transition: 'overlay',
-                    dimPage: false,
-                    closable: false,
-                })
-                .sidebar('show');
-        });
-
-        $('.sidebar-panel-icon').click(function () {
-            $(".ui.sidebar").sidebar('hide');
-        });
-
-
-        // Gives us tooltips on buttons
-        //
-        $('.ui.button').popup();
-
-
-        // Open an information panel with menu button click    
-        //
-        function closeAllPanels() {
-            $('.info-panel').each(function (i) {
-                $(this).addClass('hidden');
-            })
-        };
-
-        [].forEach.call(document.querySelectorAll(".open-panel"), function (el) {
-            el.addEventListener("click", function () {
-                closeAllPanels();
-                var id = '#' + el.id + '-panel';
-                $(id).removeClass('hidden');
-            });
-        });
-
-
-        // Create custom zoom controls
-        //
-        $('#zoom-in').click(function () {
-            var $zoom = ol.animation.zoom({
-                resolution: map.getView().getResolution()
-            });
-            map.beforeRender($zoom);
-            map.getView().setResolution(map.getView().getResolution() * 0.5);
-        });
-
-        $('#zoom-out').click(function () {
-            var $zoom = ol.animation.zoom({
-                resolution: map.getView().getResolution()
-            });
-<body>
-
-    <!--
-    <div class="ui right vertical menu wide sidebar">
-    </div>
--->
-    <div id="sidebar" class="ui very wide right sidebar">
-        <div class="sidemenu-top ui fixed large black vertical icon buttons">
-            <button id="layer-options" class="open-panel ui button" data-content="Layer options" data-variation="mini inverted" data-position="left center"><i class="list layout icon"></i></button>
-            <button id="drawing-tools" class="open-panel ui button" data-content="Drawing tools" data-variation="mini inverted" data-position="left center"><i class="edit icon"></i></button>
-            <button id="upload-shapefile" class="open-panel ui button" data-content="Upload shapefile" data-variation="mini inverted" data-position="left center"><i class="upload icon"></i></button>
-            <button id="download-data" class="open-panel ui button" data-content="Download data" data-variation="mini inverted" data-position="left center"><i class="download icon"></i></button>
-            <button id="help" class="open-panel ui button" data-content="Help" data-variation="mini inverted" data-position="left center"><i class="help circle icon"></i></button>
-        </div>
-        <div class="sidemenu-bottom ui fixed large black vertical icon buttons">
-            <button id="zoom-in" class="ui button"><i class="plus icon"></i></button>
-            <button id="zoom-out" class="ui button"><i class="minus icon"></i></button>
-        </div>
-
-        <div class="sidebar-panel ui container">
+        <div class="sidebar-panel ui container"> 
+            
+            <!-- Layer selection -->
             <div id="layer-options-panel" class="info-panel">
                 <div class="sidebar-panel-heading">
                     <h4 class="sidebar-panel-title">
@@ -260,27 +39,26 @@
                     </h4>
                     <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
                 </div>
-                <div class="sidebar-panel-body">
-                    <p id="border-test">Available Data Layers</p>
-                    <lable for="#attribute-layers">select soil attribute layers</lable>
-                    <div id="">
-                        <select id="attributes" name="attributes" multiple="" class="ui fluid dropdown multiple selection">
-                            <option value="">attributes</option>
-                            <option value="node">NodeJS</option>
-                            <option value="plumbing">Plumbing</option>
-                            <option value="python">Python</option>
-                            <option value="rails">Rails</option>
-                            <option value="react">React</option>
-                            <option value="repair">Kitchen Repair</option>
-                            <option value="ruby">Ruby</option>
-                            <option value="ui">UI Design</option>
-                            <option value="ux">User Experience</option>
-                        </select>
+                <div class="sidebar-panel-body">                    
+                    <span class="title-main">Available Data Layers</span>                       
+                    <div id="layer-group-acc" class="accordion-margin ui styled accordion">
+                    </div>
+                    <span class="title-sub">Selected Layers</span>
+                    <div class="accordion-margin ui styled accordion">
+                        <div class="title">
+                            <i class="dropdown icon"></i>
+                            Current Selection
+                        </div>
+                        <div class="content">
+                            <div id="selected-layer-list" class="selected-layers-list ui list">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div id="drawing-tools-panel" class="info-panel">
+            
+            <!-- Drawing Tools -->
+            <div id="drawing-tools-panel" class="drawing-tools-panel info-panel">
                 <div class="sidebar-panel-heading">
                     <h4 class="sidebar-panel-title">
                         <span>Drawing Tools</span>
@@ -288,10 +66,126 @@
                     <span class="sidebar-panel-icon"><i class="remove icon"></i></span>
                 </div>
                 <div class="sidebar-panel-body">
-                    <p id="border-test">info goes in here as well</p>
+                    <span class="title-main">Select area with drawing tools</span>
+                    <div class="ui segment">
+                        
+<!--
+                        <select name="drawing-dropdown" id="drawing-dropdown" class="ui fluid icon dropdown">
+                            <option value="">Tools</option>
+                            <option value="draw-box">
+                                <i class="object ungroup icon"></i>
+                                Box
+                            </option>
+                            <option value="draw-square">
+                                <i class="square icon"></i>
+                                Square
+                            </option>
+                            <option value="draw-poly">
+                                <i class="industry icon"></i>
+                                Polygon
+                            </option>
+                        </select>
+-->
+                        
+                        <div id="drawing-dropdown" class="drawing-dropdown ui fluid selection dropdown">
+                            <input name="tools" value="none" type="hidden">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">Text</div>
+                            <div class="menu">                                
+                                <div id="draw-box" class="draw-tool item" data-value="Box">
+                                    <i class="object ungroup icon"></i>
+                                    Box
+                                </div>                            
+                                <div id="draw-square" class="draw-tool item" data-value="Square">
+                                    <i class="square icon"></i>
+                                    Square
+                                </div>
+                                <div id="draw-polygon" class="draw-tool item" data-value="Point">
+                                    <i class="radio icon"></i>
+                                    Point
+                                </div>
+                                <div id="draw-polygon" class="draw-tool item" data-value="Polygon">
+                                    <i class="industry icon"></i>
+                                    Polygon
+                                </div>
+                                <div id="draw-none" class="draw-tool item" data-value="None">
+                                    - none -
+                                </div>
+                            </div>
+                        </div>
+                                            
+                        
+                        
+                    </div>
+                    <h2 class="ui header">OR</h2>
+                    <span class="title-main">Select area with Coordinates</span>
+                    <div class="ui segment">
+                        <form class="ui form">
+                            <div class="two fields">
+                                <div class="field">
+                                    <div class="ui labeled input">
+                                        <div class="ui label">
+                                            min-x
+                                        </div>
+                                        <input name="minX" placeholder="lower left x-axis" type="text">                                        
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui labeled input">
+                                        <div class="ui label">
+                                            min-y
+                                        </div>
+                                        <input name="minY" placeholder="lower left y-axis" type="text">
+                                    </div>
+                                </div>                              
+                            </div>
+                            <div class="two fields">
+                                <div class="field">
+                                    <div class="ui labeled input">
+                                        <div class="ui label">
+                                            max-x
+                                        </div>
+                                        <input name="maxX" placeholder="top right x-axis" type="text">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="ui labeled input">
+                                        <div class="ui label">
+                                            max-y
+                                        </div>
+                                        <input name="maxY" placeholder="top right y-axis" type="text">
+                                    </div>
+                                </div>
+                            </div>                            
+                            <div class="field">
+                                <div class="ui labeled input">
+                                    <div class="ui label">
+                                        EPSG:
+                                    </div>
+                                    <input name="epsg" placeholder="Default: 4326" type="text">
+                                </div>
+                            </div>
+                            <div class="two fields">
+                                <div class="field">
+                                    <div class="ui blue fluid labeled icon disabled button">
+                                        Download Data
+                                        <i class="download icon"></i>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="preview-bbox ui teal fluid labeled icon button">
+                                        Preview
+                                        <i class="add icon"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
                 </div>
             </div>
-
+            
+            <!-- Shapefile Upload -->
             <div id="upload-shapefile-panel" class="info-panel">
                 <div class="sidebar-panel-heading">
                     <h4 class="sidebar-panel-title">
@@ -304,6 +198,7 @@
                 </div>
             </div>
 
+            <!-- Data Download -->
             <div id="download-data-panel" class="info-panel">
                 <div class="sidebar-panel-heading">
                     <h4 class="sidebar-panel-title">
@@ -316,6 +211,7 @@
                 </div>
             </div>
 
+            <!-- Help and Support -->
             <div id="help-panel" class="info-panel">
                 <div class="sidebar-panel-heading">
                     <h4 class="sidebar-panel-title">
@@ -355,7 +251,6 @@
         //
         $('.ui.button').popup();
 
-
         // Open an information panel with menu button click    
         //
         function closeAllPanels() {
@@ -363,7 +258,6 @@
                 $(this).addClass('hidden');
             })
         };
-
 
         // Create sidebar animation and menu button control
         //
@@ -391,7 +285,6 @@
             $(id).removeClass('hidden');
         });
 
-
         // Close menu with Close icon
         //
         $('.sidebar-panel-icon').click(function () {
@@ -399,11 +292,14 @@
             $(".ui.sidebar").sidebar('hide');
         });
 
-        // Animate dropdown menu
+        // Animate Accordions
         //
-        $('#attributes').dropdown();
-
-
+        $('.ui.accordion').accordion();
+        
+        // Animate Drawing Dropdown
+        //
+        $('.ui.dropdown').dropdown();      
+        
         // Create custom zoom controls
         //
         $('#zoom-in').click(function () {
@@ -427,28 +323,24 @@
         /****************************  Define Map Layers and Map  *****************************/
 
 
-
         // Basemap layer, OSM source
         //
         var OSM_layer = new ol.layer.Tile({
             source: new ol.source.OSM()
         });
-
-
+        
         // Set view and zoom, set for Canada
         //
         var view = new ol.View({
-            center: [-10997148, 9919099],
-            zoom: 3
+            center: [-10997148, 9319099],
+            zoom: 4
         });
-
-
+        
         // Create scaleline control
         //
         var scaleline = new ol.control.ScaleLine();
         var attr = new ol.control.Attribution();
-
-
+        
         // Create map, point to target div
         //
         var map = new ol.Map({
@@ -460,9 +352,8 @@
             target: 'map',
             view: view
         });
-
-
-        // Create Style for later
+        
+        // Create custom style 
         //
         var myStyle = new ol.style.Style({
             fill: new ol.style.Fill({
@@ -470,40 +361,260 @@
             }),
             stroke: new ol.style.Stroke({
                 color: 'rgba(255,100,50,1)'
+            }),
+            image: new ol.style.Circle({
+                radius: 7,
+                fill: new ol.style.Fill({
+                    color: 'rgba(255,100,50,.2)'
+                })
             })
         });
         
+        // Define source for multiple use
+        //      
+        var source = new ol.source.Vector({                
+            wrapX: false
+        });
+        
+        // Vector layer for drawings
+        //
+        var vectorDraw = new ol.layer.Vector({
+            source: source,
+            style: myStyle
+        });
+        vectorDraw.setMap(map);
+               
         
         
-        /****************************  Application Functionality  *****************************/
+        /****************************  Add Map Drawing Tools      *****************************/
+
+       
+        
+        // Setup some globals and fetch the selected draw tool
+        var draw, lastFeature;
+        var selectType = $('.drawing-dropdown').dropdown('get value');
+        
+        // Create main interaction function for adding and removing
+        // drawings on the map page
+        //
+        function addInteraction() {
+            var value = selectType;
+            
+            // Setup some geometry conditionals
+            if(value !== 'None') {
+                var geometryFunction, maxPoints;
+                if(value === 'Square') {
+                    value = 'Circle';
+                    geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+                } else if (value === 'Box') {
+                    value = 'LineString';
+                    maxPoints = 2;
+                    geometryFunction = function(coordinates, geometry) {
+                        if (!geometry) {
+                            geometry = new ol.geom.Polygon(null);
+                        }
+                        var start = coordinates[0];
+                        var end = coordinates[1];
+                        geometry.setCoordinates([
+                            [start, [start[0], end[1]], end, [end[0], start[1]], start]
+                        ]);
+                        return geometry;
+                    };
+                }
+                
+                // Create the draw interaction with defined geometry function
+                draw = new ol.interaction.Draw({
+                    source: source,
+                    type: (value),
+                    geometryFunction: geometryFunction,
+                    maxPoints: maxPoints
+                });
+                
+                // Handle drawing feature removal
+                var removeLastFeature = function() {
+                    if (lastFeature) 
+                        source.removeFeature(lastFeature);
+                };
+                
+                // Remove feature when begining all drawings except Points 
+                draw.on('drawstart', function(e) {
+                    console.log('start');
+                    if (selectType !== 'Point') {
+                        source.clear();
+                        console.log(selectType)
+                    }
+                });
+                
+                // Remove feature when ending drawing IF it's a Point and IF
+                // there's a feature to remove
+                draw.on('drawend', function (e) {
+                    console.log('end');
+                    if (selectType == 'Point') {
+                        if (source.getFeatures().length > 0)
+                            removeLastFeature();
+                    }
+                    lastFeature = e.feature;
+                        console.log(draw.a);
+                });
+                
+                // Finally, add the draw interaction to the map
+                map.addInteraction(draw);
+            } else 
+                source.clear();                       
+        };
+        
+        addInteraction(); 
+        
+        // Handle drawing tool change
+        $('.drawing-dropdown').change( function() { 
+            selectType = $('.drawing-dropdown').dropdown('get value');
+            map.removeInteraction(draw);
+            addInteraction();
+        });
+            
+        
+        // Add a polygon from the Bounding Box user input
+        //
+        function addUsersCoords() {
+            var polygon = new ol.Feature({
+                geometry: new ol.geom.Polygon([
+                    [
+//                        [-61.933352224,45.886673304000006],
+//                        [-61.933352224,47.053339784],
+//                        [-64.450018488,47.053339784],
+//                        [-64.450018488,45.886673304000006],
+//                        [-61.933352224,45.886673304000006]
+                        [max x, min y],
+                        [max x, max y],
+                        [min x, max y],
+                        [min x, min y],
+                        [max x, min y]
+                        
+                    ]
+                ])
+            });
+            polygon.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+            source.clear();
+            vectorDraw.getSource().addFeature(polygon);
+            lastFeature = polygon;
+        };
+
+        // Add users feature with onlick
+        $('.preview-bbox').click( function(){
+            addUsersCoords();
+            console.log('clicked');
+        });
+        
+        
+        /****************************  Application Functionality  *****************************/       
+        /****************************  Load Available data layers *****************************/
+
+        
+        // REST URL of data server 
+        var $url2 = "http://ulysses.agr.gc.ca:8080/geoserver/rest/workspaces/Canada/coveragestores/"
+        var $url = "http://ulysses.agr.gc.ca:8080/geoserver/rest/workspaces/Canada/layergroups.json"
+        
+        // Populates list of available data layers from Ulysses using REST api
+        // First, fetch a list of available layergroups
+        $.ajax({
+            url: $url,
+            type: "GET",
+        })
+            .done( function(data){
+                var $lGLength = data.layerGroups.layerGroup.length;
+                var $lGArray = [];            
+
+                // Write layergroups to sorted array lGArray 
+                for(i = 0; i < $lGLength; i++){
+                    $lGArray.push(data.layerGroups.layerGroup[i])
+                    $lGArray.sort();
+                }
+
+                // Loop through lGArray and fetch data on each entry
+                var $lGALength = $lGArray.length;
+                for(x = 0; x < $lGALength; x ++) {
+                    // 
+                    $.ajax({
+                        url: $lGArray[x].href,
+                        type: "GET",
+                    })
+                        .done( function(data) {
+                            var $lGName = data.layerGroup.name;
+                            var $lGTxt = data.layerGroup.abstractTxt;
+                            var $pubLength = data.layerGroup.publishables.published.length;
+                        
+                            // Create an accordion section for each layergroup
+                            $('#layer-group-acc').html('<div id="' + $lGName + '" class="title">' + 
+                                                          '<i class="dropdown icon"></i>' +
+                                                           $lGName + '<br/>' +
+                                                          '<span class="span-attr">' + $lGTxt + '</span>' +
+                                                          '</div>' +                                                  
+                                                          '<div class="content">' +
+                                                          '<select id="dropdown-' + $lGName + '" name="attributes" multiple="" class="layer-dropdown ui fluid dropdown multiple selection">' +
+                                                          '<option value="">soil attribute</option>' +
+                                                          '</select></div>');
+                            for(y = 0; y < $pubLength; y++){
+                                // Get all the layers for each layergroup, write to dropdown 
+                                $.ajax({
+                                    url: $url2 + data.layerGroup.publishables.published[y].name + ".json",
+                                    type: "GET",
+                                    async: false,
+                                })
+                                    .done( function(data) {
+                                        $('#dropdown-' + $lGName).append('<option value="' + data.coverageStore.name + '">' + data.coverageStore.description + '</option>');
+                                    })
+                                    // Handle failure of loser code
+                                    .fail( function(xhr, status) {
+                                    // handle this shit
+                                    });
+                            }
+                            // NOTE - Might have to do this on loop for multiple dropdowns! ****
+                            $('.ui.dropdown.multiple').dropdown() 
+                                              .change( function() {                        
+                                var $list = $('.layer-dropdown').dropdown('get value');
+                                var $lyrList = $('.selected-layers-list');
+                                
+                                $lyrList.empty().html( function() {
+                                    $.each($list, function(index, value){
+                                        $lyrList.append('<div class="item">' + 
+                                                        '<i class="check circle icon"></i>' + 
+                                                        '<div class="content">' + value + 
+                                                        '</div></div>');                                               
+                                    })
+                                }); 
+                            });
+                        })
+                        // Handle anotehr server error
+                        .fail( function (xhr, status){
+                        // Do something with error response    
+                        });
+                }
+            })        
+            // Handle server response failure
+            .fail( function(xhr, status){
+                // Do something with error response
+            });
+        
+        
 
         
         
-//        I'll wanna use this somewhere eventually
-//        $('.ui.dropdown').dropdown('get value');
+       
         
-        var $url = "http://ulysses.agr.gc.ca:8080/geoserver/rest/workspaces/Canada/coveragestores.json"
-        var $url2 = "http://ulysses.agr.gc.ca:8080/geoserver/rest/workspaces/Canada/layergroups.json"
         
-        $.get($url2, function(data, status){
-//            console.log(data.layerGroups.layerGroup[0]);
-            
-            var $layerGroups = [];
-            for(i = 0; i < data.layerGroups.layerGroup.length; i++){
-                $layerGroups.push(data.layerGroups.layerGroup[i])
-                $layerGroups.sort();
-                console.log($layerGroups);
-            }
-//            var soilLayers = [];
-//            for(i = 0; i < data.coverageStores.coverageStore.length; i++){
-//                soilLayers.push(data.coverageStores.coverageStore[i].name);
-//                soilLayers.sort();
-//            }
-//            $('#attributes').html()
-//            console.log(soilLayers);
-        });
-        
+
     </script>
 </body>
+
+
+
+
+
+
+    
+
+            
+       
+            
 
 </html>
