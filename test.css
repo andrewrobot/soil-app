@@ -42,6 +42,7 @@ Sidebar menu buttons
     background-color: #404040;
 }
 
+/*
 .ui.black.buttons .button:focus,
 .ui.black.button:focus {
     background-color: #b30000;
@@ -49,6 +50,17 @@ Sidebar menu buttons
 
 .ui.black.buttons .button:focus:hover,
 .ui.black.button:focus:hover {
+    background-color: #990000;
+}
+*/
+
+.ui.black.buttons .button.clicked,
+.ui.black.button.clicked {
+    background-color: #b30000;
+}
+
+.ui.black.buttons .button.clicked:hover,
+.ui.black.button.clicked:hover {
     background-color: #990000;
 }
 
@@ -73,6 +85,7 @@ Sidebar menu buttons
 .clicked {
     background-color: #b30000;
 }
+
 
 /*
 Sidebar panel
@@ -152,14 +165,30 @@ Sidebar panel information body
     height: 100% !important;
     padding: 10px 15px 10px 15px;
     width: 100% !important;
-    text-overflow: clip;
+/*    text-overflow: clip;*/
 }
 
-#border-test {
+.title-main {
+    display: inline-block;
     font-weight: 700;
+/*    margin-bottom: 14px;    */
     /*
     border-width: 2px;
     border-color: solid black;
     border-bottom-style: solid black !important;
 */
+}
+
+.title-sub {
+    display: inline-block;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.span-attr {
+    padding-left: 20px;
+}
+
+.accordion-margin {
+    margin-top: 10px;
 }
