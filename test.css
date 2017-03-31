@@ -1,3 +1,4 @@
+
 /*
 Basemap controls
 */
@@ -153,10 +154,6 @@ Sidebar panel information body
 
 #sidebar,
 .ui.sidebar.right.overlay {
-    /*
-    border-color: #333;
-    border-width: 5px;
-*/
     width: 27% !important;
 }
 
@@ -165,18 +162,11 @@ Sidebar panel information body
     height: 100% !important;
     padding: 10px 15px 10px 15px;
     width: 100% !important;
-/*    text-overflow: clip;*/
 }
 
 .title-main {
     display: inline-block;
     font-weight: 700;
-/*    margin-bottom: 14px;    */
-    /*
-    border-width: 2px;
-    border-color: solid black;
-    border-bottom-style: solid black !important;
-*/
 }
 
 .title-sub {
@@ -185,10 +175,51 @@ Sidebar panel information body
     margin-top: 20px;
 }
 
+
+
+/*
+Small tweeks
+*/
+
+
 .span-attr {
     padding-left: 20px;
 }
 
 .accordion-margin {
     margin-top: 10px;
+}
+
+.form-buttons {
+    margin-bottom: 0px !important;
+}
+
+.upload {
+    position: relative;
+    overflow: hidden;
+}
+.upload input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+
+#options {
+    display: none;
+    margin-bottom: 14px;
+}
+
+#dataInfo {
+    text-align: center;
 }
