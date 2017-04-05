@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GeoTIFF Save v1.0</title>
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css"> 
+    <link rel="stylesheet" href="../Styles/template_base.css" type="text/css"> 
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>
+   
+</head>
+<body> 
+    <div id="container">        
+        <div id="map" class="map">
+            <div id="status" class="status">ready</div>
+        </div>
+        <div id="infoWrap">
+            <ul class="tab">
+                <li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, 'Selection')">Selection</a></li>
+                <li><a href="javascript:void(0)" id="result-link" class="tablinks" onclick="openTab(event, 'Results')">Results</a></li>
+            </ul>
+            <div id="Selection" class="tabcontent selection">
+                <h3 class="header">Draw a Feature</h3>
+                <p>Please select a feature type below and draw it on the map. The map can contain only one feature.</p>
+                <form class="form-inline">
+                    <lable>Geometry Type &nbsp;</lable>
+                    <select id="type">
+                        <option value="Polygon">Polygon</option>
+                        <option value="Circle">Circle</option>
+                        <option value="Square">Square</option>
+                    </select>
+                </form>
+            </div>
+            <div id="Results" class="tabcontent">
+                <h3 class="header">Results</h3>
+                <p>Processing results and interesting information will be displayed here, perhaps even for download.</p>
+                <div class="data">
+                    <div class="data-tag">Data Value:</div>
+                    <div id="pixelValue" class="data-input"></div>    
+                </div>   
+            </div> 
+        </div>
+        <button class="accordion" onclick="openAcc()">Functionality</button>
+        <div class="panel">
+          <p>This will contain some information on just what the hell is going on in these pages.</p>
+        </div>
+    </div>  
+    <script>        
+        
+        /****************************  Define Map Layers and Map  *****************************/
+        
+        // Create Style for later
+        //
+        var myStyle = new ol.style.Style ({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,100,50,.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(255,100,50,1)'
+            })
+        });
+        
+        // Basemap layer, OSM source
+        //
+        var OSM_layer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+        
+        // Removes world wrap on new vector layer
+        //
+        var source = new ol.source.Vector({wrapX: false});
+        
+        // New vector layer to draw on     
+        //
+        var vector = new ol.layer.Vector({
+            source: source,
+            style: myStyle
+        });
+        
+        // Set view and zoom, set for Canada
+        //
+        var view = new ol.View({
+            center: [-10997148, 9919099],
+            zoom: 3
+        });
+        
+        // Create map, point to target div
+        //
+        var map = new ol.Map({
+            interactions: ol.interaction.defaults({doubleClickZoom: false}),
+            layers: [OSM_layer, vector],
+            target: 'map',
+            view: view
+        })
+        
+              
+        /****************************  Create Drawing Functionality  *****************************/
+        
+        
+        var typeSelect = document.getElementById('type');
+
+        var draw; 
+        
+        function addInteraction() {
+            var value = typeSelect.value;            
+            
+            if (value !== 'None') {
+                var geometryFunction, maxPoints;
+                if (vector.getSource().getFeatures().length > 1) {
+                    source.clear();
+                }
+                if (value === 'Square') {
+                    value = 'Circle';
+                    geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+                } else if (value === 'Box') {
+                    value = 'LineString';
+                    maxPoints = 2;
+                    geometryFunction = function(coordinates, geometry) {
+                        if (!geometry) {
+                            geometry = new ol.geom.Polygon(null);
+                        }
+                        var start = coordinates[0];
+                        var end = coordinates[1];
+                        geometry.setCoordinates([
+                            [start, [start[0], end[1]], end, [end[0], start[1]], start]
+                        ]);
+                        return geometry;
+                    };
+                }
+
+                draw = new ol.interaction.Draw({
+                    source: source,
+                    type: (value),
+                    geometryFunction: geometryFunction,
+                    maxPoints: maxPoints
+                });
+                                
+                map.addInteraction(draw);              
+            }            
+        };       
+
+        addInteraction();
+        
+        typeSelect.onchange = function() {
+            console.log(vector.getSource().getFeatures());
+            source.clear();
+            map.removeInteraction(draw);
+            console.log(draw);
+            addInteraction();
+        };
+        
+        map.on('click', function(){
+            if (vector.getSource().getFeatures().length > 1) {
+                    source.clear();
+            }
+        });
+        
+    </script>
+    <script src="../Script/templateFunctions.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

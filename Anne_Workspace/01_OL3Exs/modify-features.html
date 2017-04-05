@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Modify Features</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <div id="map" class="map"></div>
+    
+    <script>
+      //
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      //
+      var vector = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          url: 'https://openlayers.org/en/v3.19.0/examples/data/geojson/countries.geojson',
+          format: new ol.format.GeoJSON(),
+          // wrap the world horizontally
+          wrapX: false
+        })
+      });
+      
+      // declare select
+      var select = new ol.interaction.Select({
+        /** wrap the world horizontally on the selection overlay -> false to
+          match above */
+        wrapX: false
+      });
+      
+      // declare modify
+      var modify = new ol.interaction.Modify({
+        // req'd -> the features the interaction works on 
+        features: select.getFeatures()
+      });
+      
+      // map
+      var map = new ol.Map({
+        // add the select & modify interactions
+        interactions: ol.interaction.defaults().extend([select, modify]),
+        layers: [raster, vector],
+        target: 'map',
+        view: new ol.View({
+          center: [0, 0],
+          zoom: 2
+        })
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geolocation</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    <!-- script below only needed for old env'ts like IE & Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <div id="map" class="map"></div>
+    <!-- div to display error info it is exists -> default is not displayed -->
+    <div id="info" style="display: none;"></div>
+    
+    <!-- label html tag defines a label for an input element -> provides mouse usability improvement b/c if user clicks on the text in the label, it toggles the input control -> the "for" attribute of the label s/b = to the "id" attribute of the related input element to bind them together -->
+    <label for="track">
+      track position
+      <input id="track" type="checkbox"/>
+    </label>
+    
+    <p>
+      position accuracy : <code id="accuracy"></code>&nbsp;&nbsp;
+      altitude : <code id="altitude"></code>&nbsp;&nbsp;
+      altitude accuracy : <code id="altitudeAccuracy"></code>&nbsp;&nbsp;
+      heading : <code id="heading"></code>&nbsp;&nbsp;
+      speed : <code id="speed"></code>
+    </p>
+    
+    <script>
+      // declare view
+      var view = new ol.View({
+        center: [0, 0],
+        zoom: 2
+      });
+      
+      // declare map
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          })
+        ],
+        target: 'map',
+        controls: ol.control.defaults({
+          // OSM copyright
+          attributionOptions: ({
+            collapsible: false
+          })
+        }),
+        view: view
+      });
+      
+      /** declare geolocation and set the projection the position is reported in
+        to that of the view's
+        * ol.Geolocation provides HTML5 Geolocation capabilities and its API
+        is used to locate a user's position*/
+      var geolocation = new ol.Geolocation({
+        projection: view.getProjection()
+      });
+      
+      // declare function to call the DOM element by ID
+      function el(id) {
+        return document.getElementById(id);
+      }
+      
+      /** add listener when track checkbox changes -> when it is checked, enable
+        * tracking for the geolocation */
+      el('track').addEventListener('change', function() {
+        geolocation.setTracking(this.checked);
+      });
+      
+      /** udpate the HTML page when the position changes with the results of the
+        Geolocation methods and insert them into the DOM elements via the el 
+        function 
+        * innerText sets/gets the text b/w the start & end tags of the object
+        (as plain text) whereas innerHTML sets/gets the HTML syntax describing 
+        the element's descendents (in HTML rich text format) 
+        * innerText IS NOT standard and IS NOT supported by all browsers */
+      geolocation.on('change', function() {
+        el('accuracy').innerText = geolocation.getAccuracy() + ' [m]';
+        el('altitude').innerText = geolocation.getAltitude() + ' [m]';
+        el('altitudeAccuracy').innerText = geolocation.getAltitudeAccuracy() +
+          ' [m]';
+        el('heading').innerText = geolocation.getHeading() + ' [rad]';
+        el('speed').innerText = geolocation.getSpeed() + ' [m/s]';
+      });
+      
+      /** handle geolcation error -> set the error message to display in the 
+        info div */
+      geolocation.on('error', function(error) {
+        var info = document.getElementById('info');
+        info.innerHTML = error.message;
+        info.style.display = '';
+      });
+      
+      // declare accuracy feature
+      var accuracyFeature = new ol.Feature();
+      /** when accuracy geometry changes, set the accuracy feature to the 
+       geometry returned from the geolocation getAccuracyGeometry() method */
+      geolocation.on('change:accuracyGeometry', function() {
+        accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+      });
+      
+      // declare position feature
+      var positionFeature = new ol.Feature();
+      // set position feature style
+      positionFeature.setStyle(new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 6,
+          fill: new ol.style.Fill({
+            color: '#3399CC'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#fff',
+            width: 2
+          })
+        })
+      }));
+      
+      // when geolocation changes position...
+      geolocation.on('change:position', function() {
+        // declare coordinates of the new position
+        var coordinates = geolocation.getPosition();
+        /** set the geometry of the position feature to the new coordinates 
+          * if coordinates is TRUE, set the geometry to the point coordinates
+          * if coordinates is FALSE (DNE), set the geometry to null */
+        positionFeature.setGeometry(coordinates ?
+          new ol.geom.Point(coordinates) : null);
+      });
+      
+      /** create new vector layer with accuracy & position features and add it
+        * to the map */
+      new ol.layer.Vector({
+        map: map,
+        source: new ol.source.Vector({
+          features: [accuracyFeature, positionFeature]
+        })
+      });
+      
+    </script>
+    
+  </body>
+</html>

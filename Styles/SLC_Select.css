@@ -1,0 +1,164 @@
+/*
+
+Input styling credits;
+
+## Styling & Customizing File Inputs the Smart Way
+A tutorial on how to style and customize <input type="file"> in a semantic, accessible way using the <label> element and some JavaScript. By Osvaldas Valutis.
+[Article on Codrops](http://tympanus.net/codrops/?p=24831)
+
+## Credits
+Icon made by [Daniel Bruce](http://www.danielbruce.se) from [www.flaticon.com](http://www.flaticon.com) is licensed under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/)
+
+*/
+
+
+.form {
+    padding-top: 13px;
+}
+
+.legend {
+    color: black;
+    font-size: 12px;
+    font-weight: bold;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.fieldset {
+    border: 1px solid #ccc;
+}
+
+.box-1 {
+    margin-top: 20px;
+}
+
+.box-2 {
+    margin-top: 5px;
+}
+
+.inputfile {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.inputfile + label {
+    border: 1px solid #9099A2;/*#d3394c*/
+    border-radius: 2px;
+    background-color: #f1e5e6;
+    width: 278px;
+/*    max-width: 284px;*/
+    font-size: 12px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+/*    display: block;*/
+    display: inline-block;
+    overflow: hidden;
+    padding: 0;
+/*    padding: 10px 20px;*/
+    cursor: pointer;
+}
+
+.inputfile:focus + label,
+.inputfile.has-focus + label,
+.inputfile + label:hover {
+    border-color: #6D7993;  /*#722040*/
+    outline: -webkit-focus-ring-color auto 5px;
+}
+
+.inputfile + label svg {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    fill: currentColor;
+    margin-top: -4px;
+    margin-right: 4px;
+}
+
+.inputfile + label span,
+.inputfile + label strong {
+    padding: 10px 20px;
+}
+
+.inputfile + label span {
+    width: 77px;
+    height: 15px;
+/*    min-height: 32px;*/
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.inputfile + label strong {
+    height: 100%;
+    color: #f1e5e6;
+    background-color: #9099A2;
+    display: inline-block;
+}
+
+.inputfile:focus + label strong,
+.inputfile.has-focus + label strong,
+.inputfile + label:hover strong {
+    background-color: #6D7993;
+}
+
+.cancel-btn, .preview {    
+    color: #f1e5e6;
+    display: inline-block;   
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 2px;
+/*    float: left;*/
+       
+}
+
+.cancel-btn {
+    background-color: #d95c5c;
+    width: 57px;
+}
+
+.cancel-btn:hover {
+    background-color: #dd6e6e;
+}
+
+.preview {
+    background-color: #9099A2;
+    width: 118px;
+}
+
+.preview:hover {
+    background-color: #6D7993;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

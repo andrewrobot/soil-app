@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WMS GetFeatureInfo (Layers)</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <table id="info">
+      <tr>
+        <td>All features:</td>
+        <td id="all"></td>
+      </tr>
+      <tr>
+        <td>Hotel features:</td>
+        <td id="hotel"></td>
+      </tr>
+      <tr>
+        <td>Restaurant features:</td>
+        <td id="restaurant"></td>
+      </tr>
+    </table>
+    
+    <script>
+      /** @fetch: fetch a resource -> fetch(URL / path of the resource) ->
+        returns a promise containing the response (a Response Oject)
+        * fetch(path).then(function(response)... to do things with the
+        response  
+        * https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch */
+      fetch('https://openlayers.org/en/v3.19.0/examples/data/wmsgetfeatureinfo/osm-restaurant-hotel.xml').then(function(response) {
+        // return the text of the response
+        return response.text();
+      }).then(function(response) {
+        
+        /** this is the standard way to read the features 
+          * ol.format.WMSGetFeatureInfo().readFeatures reads all features from
+          a WMSGetFeatureInfo response */
+        var allFeatures = new ol.format.WMSGetFeatureInfo().readFeatures
+          (response);
+        // in 'all' cell, put total # of features
+        document.getElementById('all').innerText = allFeatures.length.toString();
+        
+        /** when specifying the 'layers' option, only the features of those
+          layers are returned by the format */
+        var hotelFeatures = new ol.format.WMSGetFeatureInfo({
+          layers: ['hotel']
+        }).readFeatures(response);
+        // in 'hotel' cell, put # of hotels
+        document.getElementById('hotel').innerText = hotelFeatures.length.toString();
+        
+       // same for restaurants
+       var restaurantFeatures = new ol.format.WMSGetFeatureInfo({
+         layers: ['restaurant']
+       }).readFeatures(response);
+       document.getElementById('restaurant').innerText = restaurantFeatures.length.toString();
+       
+      });
+    </script>
+  </body>
+</html>

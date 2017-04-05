@@ -1,0 +1,32 @@
+<html>
+    
+    <title>AJAX testing</title>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script>
+        $(document).ready(function() {  
+            $(".button").click(function(){
+               $("div").text("working");
+                $.ajax({
+                    type: "GET",
+                    url: "welcome_post.php",
+                    data: { name: "Andrew" }
+                }).done(function(msg) {
+                    alert( "data saved: " + msg);
+                })
+            });   
+        });      
+        </script>   
+    </head>
+    <body>
+         
+    <button type=button class="button">I'm a button</button>    
+    <form action="welcome_post.php" method="post">
+        Name: <input type="text" name="name"><br>
+        Fav farm creature: <input type="text" name="creature"><br>
+    <input type="submit">
+    </form>
+    <div id="div"></div>    
+
+    </body>
+</html>

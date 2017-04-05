@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Template</title>
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css"> 
+    <link rel="stylesheet" href="../Styles/template_base.css" type="text/css"> 
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>
+   
+</head>
+<body> 
+    <div id="container">        
+        <div id="map" class="map">
+            <div id="status" class="status">ready</div>
+        </div>
+        <div id="infoWrap">
+            <ul class="tab">
+              <li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, 'Selection')">Selection</a></li>
+              <li><a href="javascript:void(0)" id="result-link" class="tablinks" onclick="openTab(event, 'Results')">Results</a></li>
+            </ul>
+            <div id="Selection" class="tabcontent selection">
+              <h3 class="header">Selection</h3>
+              <p class="description">Selection and query parameters will be added here.</p>
+            </div>
+            <div id="Results" class="tabcontent">
+                <h3 class="header">Results</h3>
+                <p>Processing results and interesting information will be displayed here, perhaps even for download.</p>
+                <div class="data">
+                    <div class="data-tag">Data Value:</div>
+                    <div id="pixelValue" class="data-input"></div>    
+                </div>   
+            </div> 
+        </div>
+        <button class="accordion" onclick="openAcc()">Functionality</button>
+        <div class="panel">
+            <pre>This will contain some information on just what the hell is going on in these pages.</pre>
+            <pre class="panel-info">Details: <br>                
+                Those details will go here...
+            </pre>    
+        </div>
+    </div>  
+    <script>        
+        
+        /****************************  Define Map Layers and Map  *****************************/
+        
+        
+        // Basemap layer, OSM source
+        //
+        var OSM_layer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+        
+        // Set view and zoom, set for Canada
+        //
+        var view = new ol.View({
+            center: [-10997148, 9919099],
+            zoom: 3
+        });
+        
+        // Create map, point to target div
+        //
+        var map = new ol.Map({
+            interactions: ol.interaction.defaults({doubleClickZoom: false}),
+            layers: [OSM_layer],
+            target: 'map',
+            view: view
+        })
+        
+        // Create Style for later
+        //
+        var myStyle = new ol.style.Style ({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,100,50,.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(255,100,50,1)'
+            })
+        });
+        
+    </script>
+    <script src="../Script/templateFunctions.js"></script>
+</body>
+</html>

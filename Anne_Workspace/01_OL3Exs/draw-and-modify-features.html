@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draw & Modify Features</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.18.2/css/ol.css" type="text/css">
+    <!-- The line below is only need for old environments like Internet Explorer and Android 4.x -->
+    <script src="htts://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.18.2/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <div id="map" class="map"></div>
+    
+    <form class="form-inline">
+      <lable>Geometry type &nbsp;</lable>
+      
+      <select id="type">
+        <option value="Point">Point</option>
+        <option value="LineString">LineString</option>
+        <option value="Polygon">Polygon</option>
+      </select>
+    </form>
+    
+    <script>
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      var map = new ol.Map({
+        layers: [raster],
+        target: 'map',
+        view: new ol.View({
+          center: [-11000000, 4600000],
+          zoom: 4
+        })
+      });
+      
+      // create a features collection to store list of features
+      var features = new ol.Collection();
+      
+      // create vector feature layer
+      var featureOverlay = new ol.layer.Vector({
+        // the features to be included are the features collection
+        source: new ol.source.Vector({features: features}),
+        style: new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 255, 0.2)'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#ffcc33',
+            width: 2
+          }),
+          image: new ol.style.Circle({
+            radius: 7,
+            fill: new ol.style.Fill({
+              color: '#ffcc33'
+            })
+          })
+        })
+      });
+      
+      // add vector layer to map
+      featureOverlay.setMap(map);
+      
+      // modify interaction
+      var modify = new ol.interaction.Modify({
+        features: features,
+        /** the SHIFT key must be pressed to delete verticles, so that the new
+         vertices can be drawn at the same position of existing vertices 
+         * deleteCondition option: takes ol.MapBrowserEvent & returns bool to
+         indicate whether the event should be handled - by default, 
+         ol.events.condition.singleClick with 
+         ol.events.condition.noModifierKeys results in a vertex deletion*/
+        deleteCondition: function(event) {
+          return ol.events.condition.shiftKeyOnly(event) &&
+            ol.events.condition.singleClick(event);
+        }
+      });
+      
+      // add modify interaction to map
+      map.addInteraction(modify);
+      
+      // draw interaction
+      var draw; // global so can remove interaction later
+      // selection to var
+      var typeSelect = document.getElementById('type');
+      
+      // define addInteraction method with no parameters
+      function addInteraction() {
+        // create Draw interaction & assign to var
+        draw = new ol.interaction.Draw({
+          features: features,
+          /** @type{ol.geom.GeometryType} */
+          type: (type.Select.value)
+        });
+        // add draw interaction to map
+        map.addInteraction(draw);
+      }
+      
+      /** Handle change event */
+      typeSelect.onchange = function() {
+        map.removeInteraction(draw);
+        /** remove previous interaction when selection type is changed and add 
+         the new interaction */
+        addInteraction();
+      };
+      
+      // call addInteraction function above when 
+      addInteraction();
+    </script>
+  </body>
+</html>

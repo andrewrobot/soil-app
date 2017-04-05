@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WMS Image Source Test</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.1/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.1/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <div id="map" class="map"></div>
+    
+    <script>
+      var wmsSource = new ol.source.ImageWMS({
+        url: 'http://geo.weather.gc.ca/geomet-beta',
+        params: {'LAYERS': 'REPS.DIAG.6_PRMM.ERMEAN'},
+        // must specify if want to access pixel data within the Canvas renderer
+        crossOrigin: 'anonymous'
+      });
+      
+      var wmsLayer = new ol.layer.Image({
+        source: wmsSource
+      });
+      
+      // from OL3Exs wms-no-proj.html
+      var cndLmbtCnfrml = new ol.proj.Projection({
+        code: 'EPSG:102002',
+        units: 'm'
+      });
+      
+      var view = new ol.View({
+        center: [-11668400.732, 7702968.588],
+        zoom: 3,
+        //projection: 'EPSG:3857' //is the default
+        //projection: cndLmbtCnfrml
+      });
+      
+      var rasterTest = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      var map = new ol.Map({
+        layers: [rasterTest, wmsLayer],
+        target: 'map',
+        view: view
+      });
+      
+    </script>
+  </body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WCS Info Popup</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.1/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.1/build/ol.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+     
+    <style>
+      .popover-content {
+        min-width: 180px;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <details>
+      <summary>Details</summary>
+      <p>Combining WMS-imageSource-testV2popup.html and getfeatureinfo-WCS.html</p>
+      <p>in attempt to view the weather WMS and display the WCS value in the popup.</p>
+      <p>This page has successfully pulled in the weather WCS pixel data through the getGetFeatureInfoURL method and dispalyed it in an iframe within the popup.</p>
+    </details>
+    <div id="map" class="map"></div>
+    <div style="display: none;">
+      <div id="popup" title="Welcome to ol3"></div>
+    </div>
+    
+    <script>
+      var wmsSource = new ol.source.ImageWMS({
+        url: 'http://geo.weather.gc.ca/geomet-beta',
+        params: {'LAYERS': 'REPS.DIAG.6_PRMM.ERMEAN'},
+        // must specify if want to access pixel data within the Canvas renderer
+        crossOrigin: 'anonymous'
+      });
+      
+      var wmsLayer = new ol.layer.Image({
+        source: wmsSource
+      });
+      
+      /** not going to worry about projecting for now
+      // from OL3Exs wms-no-proj.html
+      var cndLmbtCnfrml = new ol.proj.Projection({
+        code: 'EPSG:102002',
+        units: 'm'
+      });
+      */
+      
+      var view = new ol.View({
+        center: [-11668400.732, 7702968.588],
+        zoom: 3,
+        //projection: 'EPSG:3857' //is the default
+        //projection: cndLmbtCnfrml //not working yet
+      });
+      
+      var rasterTest = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      var map = new ol.Map({
+        layers: [rasterTest, wmsLayer],
+        target: 'map',
+        view: view
+      });
+      
+      // Popup
+      var popup = new ol.Overlay({
+        // DOM element of popup
+        element: document.getElementById('popup')
+      });
+      
+      map.addOverlay(popup);
+      
+      map.on('click', function(evt) {
+        var element = popup.getElement();
+        var coord = evt.coordinate;
+        var hdms = ol.coordinate.toStringHDMS(coord);
+        /**
+        var pixel = map.getEventPixel(evt);
+        var pixFt = map.forEachFeatureAtPixel(pixel, getValue(pixel);
+        function getValue(pixel) {
+          var value = pixel.getFeatureInfo;
+          return value;
+        }
+        */
+        
+        // create GetFeatureInfoUrl
+        var viewResolution = (view.getResolution());
+        var url = wmsSource.getGetFeatureInfoUrl(
+          coord, viewResolution, 'EPSG:3857',
+          {'INFO_FORMAT': 'text/plain'}
+        );
+        
+        $(element).popover('destroy');
+        popup.setPosition(coord);
+        // keys are quoted to prevent remaining in ADVANCED mode
+        
+        $(element).popover({
+          'placement': 'top',
+          'animation': false,
+          'html': true,
+          'content': '<p>The location you clicked was:</p><code>' + hdms + '</code> <p><br>with a soil value of:</p><iframe seamless src="' + url + '"></iframe>'
+        });
+        $(element).popover('show');
+        
+      });
+      
+    </script>
+  </body>
+</html>

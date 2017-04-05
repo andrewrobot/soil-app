@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="UTF-8">
+    <title>Weather_test</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.1/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="WMStesting2.css" type="text/css">  
+<!--     The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.1/build/ol.js"></script>
+<!--    <link rel="stylesheet" href="../../../ol/v3.19.1-dist/ol.css" type="text/css">
+    <script src="../../../ol/v3.19.1-dist/ol.js" type="text/javascript"></script>-->  
+    
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <div id="info">&nbsp;</div>
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content"></div>
+    </div>
+    <form class="form-inline">
+      <label>Geometry type &nbsp;</label>
+      <select id="type">
+        <option value="Point">Point</option>
+        <option value="LineString">LineString</option>
+        <option value="Polygon">Polygon</option>
+        <option value="Circle">Circle</option>
+        <option value="None">None</option>
+      </select>
+      <label>&nbsp;&nbsp;&nbsp;&nbsp; Clear Doodles &nbsp;</label>
+      <button type="button" id="clear">Do it</button> 
+    </form>  
+    <div id="box"></div>        
+ 
+    <script>
+      
+       /**
+       * Elements that make up the popup.
+       */
+      var container = document.getElementById('popup');
+      var content = document.getElementById('popup-content');
+      var closer = document.getElementById('popup-closer');
+
+
+      /**
+       * Create an overlay to anchor the popup to the map.
+       */
+      var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+        element: container,
+        autoPan: true,
+        autoPanAnimation: {
+        duration: 250
+        }
+      }));
+
+
+      /**
+       * Add a click handler to hide the popup.
+       * @return {boolean} Don't follow the href.
+       */
+      closer.onclick = function() {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+      };
+        
+      /* Define the source, view, and map */
+      /****/    
+      var wmsSource = new ol.source.TileWMS({
+        url: 'http://geo.weather.gc.ca/geomet-beta',
+        params: {'LAYERS': 'RADAR_RRAI'},
+        crossOrigin: 'anonymous'  
+      });
+
+      var wmsLayer = new ol.layer.Tile({
+        source: wmsSource
+      });
+        
+      var basemap = new ol.layer.Tile({
+          source: new ol.source.OSM()
+       });
+//        
+//      var source = new ol.source.Vector({wrapX: false});
+//
+//      var vector = new ol.layer.Vector({
+//        source: source
+//      });    
+
+      var view = new ol.View({
+        center: [-10997148, 9569099],
+        zoom: 3
+      });
+
+      var map = new ol.Map({
+        interactions: ol.interaction.defaults({doubleClickZoom: false}),  
+        layers: [basemap, wmsLayer],
+        overlays: [overlay],
+        target: 'map',
+        view: view
+      });
+        
+      map.on('dblclick', function(evt) {
+        var coordinate = evt.coordinate;
+          console.log(coordinate);
+        var viewResolution = /** @type {number} */ (view.getResolution());
+        var url = wmsSource.getGetFeatureInfoUrl(
+            evt.coordinate, viewResolution, 'EPSG:3857')
+//            {'INFO_FORMAT': 'json'});
+          
+        // Modify getFeatureInfoUrl to include extent of drawn object instead of coordinate from mouse click!
+        console.log(url);
+//        overlay.setPosition(coordinate);
+//        if (url) {
+//            content.innerHTML = '<iframe seamless src="' + url + '"></iframe>';
+//        }  
+//        
+//        
+//        
+        var xhttp = new  XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                var data = xhttp.responseText;
+                console.log(data);
+//                data = JSON.stringify(data);
+                data = data.split("    ");
+                var value = data[3].split("=");
+                value = value[1].replace(/\r?\n|\r/g, " ");
+                console.log(value);
+                
+                
+                
+                
+//                console.log(JSON.parse(xhttp.responseText));
+//                var obj = JSON.parse(xhttp.responseText);
+//                var thing = document.getElementById("box");
+//                var value = obj.features[0].properties.GRAY_INDEX;
+//                thing.innerHTML = "Pixel value is: " + value;
+//                content.innerHTML = '<p>Pixel value selected is:</p>' + value;
+            }
+        };
+        xhttp.open("GET", url, true);
+        xhttp.send();
+      }); 
+      
+      // Draw stuff code goes here  
+      //      
+//      var typeSelect = document.getElementById('type');
+
+//      var draw; // global so we can remove it later
+//      var drawObjects = [];    
+//      function addInteraction() {
+//        var value = typeSelect.value;
+//        if (value !== 'None') {
+//          draw = new ol.interaction.Draw({
+//            source: source,
+//            type: /** @type {ol.geom.GeometryType} */ (typeSelect.value)
+//          });
+//          map.addInteraction(draw);              
+//        }
+//      }
+//      drawObjects.push(draw); 
+//      // Handles event change in draw function
+//      //    
+//      typeSelect.onchange = function() {
+//        map.removeInteraction(draw);
+//        addInteraction();
+//      };
+//
+//      addInteraction();
+        
+      document.getElementById("clear").onclick = function() {clear()};
+      
+      function clear() {
+          console.log(drawObjects);
+          source.clear(vector);
+      }    
+        
+      </script>
+  </body>
+</html>

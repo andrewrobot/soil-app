@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Icon Symbolizer</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    
+    <style>
+      #map {
+        position: relative;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div id="map" class="map">
+      <div id="popup"></div>
+    </div>
+    
+    <script>
+      /** declare feature 
+        * attribute properties are set as ol.Object properties on the feature
+        object, so they are observable and have get/set accessors -> key value
+        pairs */
+      var iconFeature = new ol.Feature({
+        geometry: new ol.geom.Point([0, 0]),
+        name: 'Null Island',
+        population: 4000,
+        rainfall: 500
+      });
+      
+      /** declare icon style 
+        * @ol.style.Style: container for vector feature rendering styles -> any
+        changes through .set* methods will not take effect until feature/layer
+        is re-rendered 
+        * .Style is a way to change all of the style options at once: i.e.
+        ol.Image, ol.Fill, ol.Stroke etc */
+      var iconStyle = new ol.style.Style({
+        /** ol.Image is base class that is not instantiated -> base class for 
+          ol.style.Icon, ol.style.Circle & ol.style.RegularShape  */
+        image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+          // anchor default is icon center [0.5, 0.5]
+          anchor: [0.5, 46],
+          /** *X&YUnits either fraction (as a fraction of the icon) or pixels
+            (in pixels) -> default is fraction */
+          anchorXUnits: 'fraction',
+          anchorYUnits: 'pixels',
+          // req'd -> image source URI
+          src: 'https://openlayers.org/en/v3.19.0/examples/data/icon.png'
+        }))
+      });
+      
+      // set feature style
+      iconFeature.setStyle(iconStyle);
+      
+      // provides a source of features for vector layers: assign iconFeatures
+      var vectorSource = new ol.source.Vector({
+        features: [iconFeature]
+      });
+      
+      // set vectorLayer with source
+      var vectorLayer = new ol.layer.Vector({
+        source: vectorSource
+      });
+      
+      /** basemap
+        * @ol.layer.Tile: for tiled layer sources */
+      var rasterLayer = new ol.layer.Tile({
+        // @ ol.source.tileJSON: layer source for tile data in TileJSON format
+        source: new ol.source.TileJSON({
+          url: 'https://api.tiles.mapbox.com/v3/mapbox.geography-class.json?secure',
+          crossOrigin: ''
+        })
+      });
+      
+      // map
+      var map = new ol.Map({
+        layers: [rasterLayer, vectorLayer],
+        target: document.getElementById('map'),
+        view: new ol.View({
+          center: [0, 0],
+          zoom: 3
+        })
+      });
+      
+      // assign popup doc obj to element var
+      var element = document.getElementById('popup');
+      
+      /** an element to be displayed over the map attached to a map coordinate
+        -> like Control widgets but when map is panned and overlay will move to 
+        stay at the coordinate but not a Control widget */
+      var popup = new ol.Overlay({
+        element: element,
+        positioning: 'bottom-center',
+        stopEvent: false,
+        // offset from coordinate
+        offset: [0, -50]
+      });
+      
+      map.addOverlay(popup);
+      
+      // disaply popup on click
+      map.on('click', function(evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel,
+          function(feature) {
+            return feature;
+          }
+        );
+        
+        if (feature) {
+          var coordinates = feature.getGeometry().getCoordinates();
+          popup.setPosition(coordinates);
+          $(element).popover({
+            'placement': 'top',
+            'html': true,
+            'content': feature.get('name')
+          });
+          $(element).popover('show');
+        } else {
+          $(element).popover('destroy');
+        }
+      });
+      
+      // change mouse cursor when over marker
+      map.on('pointermove', function(e) {
+        if (e.dragging) {
+          $(element).popover('destroy');
+          return;
+        }
+        var pixel = map.getEventPixel(e.originalEvent);
+        var hit = map.hasFeatureAtPixel(pixel);
+        map.getTarget().style.cursor = hit ? 'pointer' : '';
+      });
+      
+    </script>
+  </body>
+</html>

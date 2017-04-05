@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Export PDF</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like IE and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+    <!-- jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.2.61/jspdf.min.js"></script>
+    
+    <style>
+      .map {
+        max-width: 566px;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="row-fluid">
+     <div class="span12">
+        <div id="map" class="map">
+        </div>
+      </div>
+    </div>
+    
+    <form class="form">
+      <label>Page size </label>
+      <select id="format">
+        <option value="a0">A0 (slow)</option>
+        <option value="a1">A1</option>
+        <option value="a2">A2</option>
+        <option value="a3">A3</option>
+        <option value="a4" selected>A4</option>
+        <option value="a5">A5 (fast)</option>
+      </select>
+      
+      <label>Resolution </label>
+      <select id="resolution">
+        <option value="72">72 dpi (fast)</option>
+        <option value="150">150 dpi</option>
+        <option value="300">300 dpi (slow)</option>
+      </select>
+    </form>
+    
+    <button id="export-pdf">Export PDF</button>
+    
+    <script>
+      // basemap
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      /** WKT: geometry format for reading & writing data in the WellKnownText 
+       (WKT) format 
+       * !!!!!! need to look at what this is doing !!!!! ?????*/
+      var format = new ol.format.WKT();
+      var feature = format.readFeature(
+        'POLYGON((10.689697265625 -25.0927734375, 34.595947265625 ' +
+          '-20.1708984375, 38.814697265625 -35.6396484375, 13.502197265625 ' +
+          '-39.1552734375, 10.689697265625 -25.0927734375))'
+      );
+      feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+      
+      // taking WKT feature and putting it in a vector layer
+      var vector = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          features: [feature]
+        })
+      });
+      
+      // map
+      var map = new ol.Map({
+        layers: [raster, vector],
+        target: 'map',
+        controls: ol.control.defaults({
+          // OSM copywrite, non-collapsible
+          attributionOptions: ({
+            collapsible: false
+            })
+        }),
+        view: new ol.View({
+          center: [0, 0],
+          zoom: 2
+        })
+      });
+      
+      // dimensions for the different formats
+      var dims = {
+        a0: [1189, 841],
+        a1: [841, 594],
+        a2: [594, 420],
+        a3: [420, 297],
+        a4: [297, 210],
+        a5: [210, 148]
+      };
+      
+      // initialize var's
+      var loading = 0;
+      var loaded = 0;
+      var exportButton = document.getElementById('export-pdf');
+      
+      exportButton.addEventListener('click', function() {
+        
+        // disable the button
+        exportButton.disabled = true;
+        // change the cursor to 'progress'
+        document.body.style.cursor = 'progress';
+        
+        // assign var's
+        // value of the format user selection to var (a0, a1, etc) 
+        var format = document.getElementById('format').value;
+        // value of the resolution user selection to var
+        var resolution = document.getElementById('resolution').value;
+        // calling the dimensions of the selected format to var
+        var dim = dims[format];
+        /** returns width in pixels from the format dimension (mm) / 25.4
+         (mm/in) * resolution (pixels/in) -> used below near the end of 
+         EventListener function for map.setSize*/
+        var width = Math.round(dim[0] * resolution / 25.4);
+        // returns height in pixels like width above
+        var height = Math.round(dim[1] * resolution / 25.4);
+        /** @type {ol.Size} 
+          * returns pixel size of map in the DOM */
+        var size = (map.getSize());
+        /** calculating the extent for the current view passing in the pixel 
+          dimension of the box which the calculated extent should fit (size) */
+        var extent = map.getView().calculateExtent(size);
+        
+        /** source of raster to var for tileLoading events below with source.un
+          and source.on */
+        var source = raster.getSource();
+        
+        // function for loading var -> add 1
+        var tileLoadStart = function() {
+          ++loading;
+        };
+        
+        /** function for loaded var -> add 1 & other functionality once called 
+          after map has finished rendering AND raster tile finished loading*/
+        var tileLoadEnd = function() {
+          ++loaded;
+          // ????
+          if (loading === loaded) {
+            /** canvas is an HTML5 element used as a container for graphics 
+              * thinking var canvas = the DOM element????? but that would be
+              the button, not the map div?????????????*/
+            var canvas = this;
+            // this method calls a function after specified # of ms -> 0.1s
+            window.setTimeout(function() {
+              // reset loading & loaded var's
+              loading = 0;
+              loaded = 0;
+              // image url to var
+              var data = canvas.toDataURL('image/png');
+              /** new pdf ([portrait orientation], [mm units], [format (a1, 
+                a4, etc)] */
+              var pdf = new jsPDF('landscape', undefined, format);
+              /** add image - every object pladed in a PDF page must be exactly
+                positioned with the coordinates in the units declared
+                * ([source], [image format], [X], [Y], [width], [height]) */
+              pdf.addImage(data, 'JPEG', 0, 0, dim[0], dim[1]);
+              // save as
+              pdf.save('map.pdf');
+              /** unlisten for a certain type of even
+                * @.un(type, listener, opt_this) where type = event type, 
+                listener = listener function, this = object used as this by
+                the listener
+                * @source = source of the raster declared above
+                * @tileloadstart: triggered when a tile starts loading
+                * unlisten for the raster loading*/
+              source.un('tileloadstart', tileLoadStart);
+              // @tileloadend: triggered when a tile finishes loading
+              source.un('tileloadend', tileLoadEnd, canvas);
+              // @tileloaderror: triggered if the tile loading results in error
+              source.un('tileloaderror', tileLoadEnd, canvas);
+              /** return the size of the map and set var size to it */
+              map.setSize(size);
+              /** @map.getView(): returns the view of the map 
+                * @.fit(geometry, size): geometry = geometry or extent & size = 
+                pixel dimensions of the box to fit the extent into (want to use
+                map.getSize for the size -> received above)
+                * fit the extent of the map based on the given map size */
+              map.getView().fit(extent, size);
+              // synch the map
+              map.renderSync();
+              // enable button
+              exportButton.disabled = false;
+              /** set the cursor style to 'auto' = browser sets the cursor 
+                * resets the cursor */
+              document.body.style.cursor = 'auto';
+            }, 100);
+          }
+        };
+        
+        /** @.once([event type], [listener function], opt_this): listen 
+          once for a certain type of event
+          * @postcompose: canvas render event 
+          * once the map has rendered...*/
+        map.once('postcompose', function(event) {
+          /** @.on([event type], [listenter function], opt_this):
+            listen for a certain type of event 
+            * once the raster tile starts loading, call tileLoadStart */
+          source.on('tileloadstart', tileLoadStart);
+          /** once the raster tile ends loading, call tileLoadEnd on the 
+            canvas of the event */
+          source.on('tileloadend', tileLoadEnd, event.context.canvas);
+          /** if raster tile loading gives error, call tileLoadEnd on the
+            canvas of the event */
+          source.on('tileloaderror', tileLoadEnd, event.context.canvas);
+        });
+        
+        // set the size of the map to the height and width above
+        map.setSize([width, height]);
+        // fit the extent of the map based on the given map size -> view control
+        map.getView().fit(extent, (map.getSize()));
+        // render the map
+        map.renderSync();
+        
+      }, false);
+    </script>
+  </body>
+</html>

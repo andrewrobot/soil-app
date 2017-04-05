@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draw Features & Save Extent</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.1/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.1/build/ol.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  </head>
+  
+  <body>
+    <details>
+      <summary>Prototype Details</summary>
+      <ul>
+        <li>User can select an AOI by:</li>
+        <ul>
+          <li>Creating features and saving them. A file will be written to the server with the saved features in GeoJSON format. The feature layer extent will be saved to be used as the AOI.</li>
+          <ul>
+           <li>The end goal would be to use the saved extent as a parameter in a call to the WCS on GeoServer.</li>
+          </ul>
+          <li>Uploading a Shapefile. The file will be saved onto the server for further processing</li>
+        </ul>
+      </ul>
+    </details>
+    
+    <div id="map" class="map"></div>
+    
+    
+    <form id="coords">
+      <h4>or</h4><h3>Specify a Bounding Box:</h3>
+      <fieldset>
+        Lower Left X / X min: <input type="text" id="xmin">
+        Upper Right X / X max: <input type="text"id="xmax">
+        <br><br>
+        Lower Left Y / Y min: <input type ="text" id="ymin">
+        Upper Right Y / Y max: <input type="text" id="ymax">
+        <span id="error" style="color:red;"></span>
+        <br><br>
+        <button type="button" onclick="clearCoords()">Clear Coordinates</button>
+        <button type="button" onclick="submitCoords()">Submit Coordinates</button>
+      </fieldset>
+    </form>
+    
+   
+    <!-- div to display status of the file save on the server with date and time -->
+    <div id="save"></div>
+    <!-- div to display # of features saved -->
+    <div id="numFeat"></div>
+    <!-- div to display layer extent -->
+    <div id="extent"></div>
+    <!-- div to display GeoJSON output -->
+    <div id="geoJ"></div>
+    <!-- div to display the entire returned json array for testing and to display BBox extend indicated by user -->
+    <div id="result"></div>
+    
+    <script>
+      // display map section
+      
+      // raster basemap
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      // vector source -> no world wrap
+      var source = new ol.source.Vector({wrapX: false});
+      
+      // vector layer for newly drawn features
+      var vector = new ol.layer.Vector({
+        source: source
+        // if want custom styles, would indicate here (see 01_OL3Exs/draw-features.html)
+      });
+      
+      // map
+      var map = new ol.Map({
+        layers: [raster, vector],
+        target: 'map',
+        view: new ol.View({
+          center: [-11000000, 8500000],
+          zoom: 4
+        })
+      });
+      
+      
+      // reset div's
+      function clearDivs() {
+        document.getElementById("save").innerHTML = "";
+        document.getElementById("numFeat").innerHTML = "";
+        document.getElementById("extent").innerHTML = "";
+        document.getElementById("geoJ").innerHTML = "";
+        document.getElementById("result").innerHTML = "";
+      }
+      
+      
+      // submit coordinates section
+      function clearCoords() {
+        document.getElementById("coords").reset();
+        document.getElementById("xmin").setAttribute("value", "");
+        document.getElementById("xmax").setAttribute("value", "");
+        document.getElementById("ymin").setAttribute("value", "");
+        document.getElementById("ymax").setAttribute("value", "");
+        document.getElementById("error").innerHTML = "";
+        clearDivs();
+      }
+      
+      function submitCoords() {
+        clearDivs();
+        // assign current form field values to var's
+        var usrXmin = document.getElementById("xmin").value;
+        var usrXmax = document.getElementById("xmax").value;
+        var usrYmin = document.getElementById("ymin").value;
+        var usrYmax = document.getElementById("ymax").value;
+        
+        // jQuery POST
+        var bboxPost = $.post("08_bboxForm-bbox_v1.php",
+          // var's / data to sent
+          {
+            xmin: usrXmin,
+            xmax: usrXmax,
+            ymin: usrYmin,
+            ymax: usrYmax
+          },
+          // callback function
+          function(data, status) {
+            alert("Status: " + status + "\nData: " + data);
+            // check if return data exists, then populate div's
+            if (data[0]) {
+              $("#error").append(data[0]);
+            }
+            if (data[1]) {
+              $("#extent").append("<p>The area of interest has been created from the extent of the bounding box you created:<br>" + data[1] + "</p>");
+            }
+          },
+          // data return type
+          "json"
+        );
+      }     
+      
+      
+      
+     
+     
+    </script>
+  </body>
+</html>

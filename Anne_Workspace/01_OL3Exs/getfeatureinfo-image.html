@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WMS GetFeatureInfo (Image Layer)</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    
+    <!-- script below only needed for old env'ts like IE & Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+  </head>
+
+  <body>
+    <div id="map" class="map"></div>
+    <div id="info">&nbsp;</div>
+    
+    <script>
+      // declare & initiate WMS source
+      var wmsSource = new ol.source.ImageWMS({
+        url: 'https://ahocevar.com/geoserver/wms',
+        params: {'LAYERS': 'ne:ne'},
+        serverType: 'geoserver',
+        crossOrigin: 'anonymous'
+      });
+      
+      // declare & initiate WMS layer
+      var wmsLayer = new ol.layer.Image({
+        source: wmsSource
+      });
+      
+      // declare & initiate view
+      var view = new ol.View({
+        center: [0, 0],
+        zoom: 1
+      });
+      
+      // declare & initiate map
+      var map = new ol.Map({
+        layers: [wmsLayer],
+        target: 'map',
+        view: view
+      });
+      
+      //
+      map.on('singleclick', function(evt) {
+        document.getElementById('info').innerHTML = '';
+        // @type {number} -> declare viewResolution
+        var viewResolution = (view.getResolution());
+        /** declare url of the source wms -> (coordinate, resolution, 
+          projection, params) 
+          * params: INFO_FORMAT should at least be provided; if QUERY_LAYERS
+          is not provided then the layers specified in the LAYERS parameter
+          will be used
+          *this url links to the wms source and holds query info */
+        var url = wmsSource.getGetFeatureInfoUrl(
+          evt.coordinate, viewResolution, 'EPSG:3857',
+          {'INFO_FORMAT': 'text/html'}
+        );
+        // if url exists, imbed iframe with url to display info
+        if (url) {
+          document.getElementById('info').innerHTML = 
+            '<iframe seamless src="' + url + '"></iframe>';
+        }
+      });
+      
+      //
+      map.on('pointermove', function(evt) {
+        // if user is draggin, do nothing
+        if (evt.dragging) {
+          return;
+        }
+        // else: declare and set the pixel of the original pointer move
+        var pixel = map.getEventPixel(evt.originalEvent);
+        /** delcare hit -> true if pointer is over a pixel that exists in layer
+          * i.e. over land, not water */
+        var hit = map.forEachLayerAtPixel(pixel, function() {
+          return true;
+        });
+        /** change the cursor style to pointer if over a pixel on land, 
+          otherwise leave as default */
+        map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+      });
+      
+    </script>
+  </body>
+</html>

@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add Layer - POST</title>
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css"> 
+    <link rel="stylesheet" href="WMStesting2.css" type="text/css"> 
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>
+</head>
+<body>    
+    <div id="map" class="map">
+        <div id="status" class="status">ready</div>
+    </div>
+    <script>
+
+        /****************************  Define Map Layers and Map  *****************************/
+        
+        
+        // Basemap layer, OSM source
+        //
+        var OSM_layer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+        
+        // Set view and zoom, set for PEI
+        //
+        var view = new ol.View({
+            projection: 'EPSG:4326',
+            center: [-62.993352224, 45.986673304000006],
+            zoom: 7 
+        });
+        
+        // Create map, point to target div
+        //
+        var map = new ol.Map({
+            interactions: ol.interaction.defaults({doubleClickZoom: false}),
+            layers: [OSM_layer],
+            target: 'map',
+            view: view
+        })
+        
+        // Create Style for later
+        //
+        var myStyle = new ol.style.Style ({
+            fill: new ol.style.Fill({
+                color: 'rgba(255,100,50,.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(255,100,50,1)'
+            })
+        });
+        
+        
+        /****************************  DoubleClick AJAX POSTRequest   *****************************/
+        
+        
+        // Function will post a request to Geoservers Web Processing Service on double 
+        // click, scoop up the GeoJSON response text, and render the coordinates 
+        // as a polygon using the predefined style above.
+        //
+        map.on('dblclick', function() {
+            
+            // Change status box
+            document.getElementById("status").innerHTML = "posted.."
+            
+            // WPS execution POST
+            //
+            var PEI_xml = 
+                '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd"><ows:Identifier>ras:PolygonExtraction</ows:Identifier><wps:DataInputs><wps:Input><ows:Identifier>data</ows:Identifier><wps:Reference mimeType="image/tiff" xlink:href="http://geoserver/wcs" method="POST"><wps:Body><wcs:GetCoverage service="WCS" version="1.1.1"><ows:Identifier>Canada:PEI</ows:Identifier><wcs:DomainSubset><ows:BoundingBox crs="http://www.opengis.net/gml/srs/epsg.xml#4326"><ows:LowerCorner>-64.450018488 45.886673304</ows:LowerCorner><ows:UpperCorner>-61.933352224 47.053339784</ows:UpperCorner></ows:BoundingBox></wcs:DomainSubset><wcs:Output format="image/tiff"/></wcs:GetCoverage></wps:Body></wps:Reference></wps:Input><wps:Input><ows:Identifier>insideEdges</ows:Identifier><wps:Data><wps:LiteralData>false</wps:LiteralData></wps:Data></wps:Input><wps:Input><ows:Identifier>nodata</ows:Identifier><wps:Data><wps:LiteralData>0</wps:LiteralData></wps:Data></wps:Input></wps:DataInputs><wps:ResponseForm><wps:RawDataOutput mimeType="application/json"><ows:Identifier>result</ows:Identifier></wps:RawDataOutput></wps:ResponseForm></wps:Execute>';
+
+            
+            // Geoserver WPS URL
+            var url = "http://127.0.0.1:8080/geoserver/ows";
+//            ?service=wps&version=1.0.0&request=Execute
+            
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("POST", url, true);
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    // Change status box
+                    document.getElementById("status").innerHTML = "got it."
+                    
+                    // Define new format 
+                    var format = new ol.format.GeoJSON();
+                   
+                    // Capture response text. Ensure this is set to the mime type specified in the request!
+                    // i.e. XML request = responseXML, or application/json request = responseText
+                    // 
+                    var xmlDoc = JSON.parse(xhttp.responseText);
+                    
+                    // Read and parse all feature in XMLdoc
+                    var features = format.readFeatures(xmlDoc,{
+                        featureProjection: 'EPSG:4326',
+                        dataProjection: 'EPSG: 4326'
+                    });
+                                    
+                    var vector = new ol.layer.Vector({
+                        source: new ol.source.Vector({
+                            format: format                            
+                        }),
+                        style: myStyle
+                    });
+                    
+                    // Add features to the layers source
+                    vector.getSource().addFeatures(features);
+                    
+                    // Add the layer to the map                    
+                    map.addLayer(vector);
+                    
+                    // Defaults to true, but can't hurt to have it
+                    vector.setVisible(true);
+                    
+                    console.log("Call out INFO:");
+                    console.log("Features:\n", features);
+                    console.log("Feat len:\n", features.length);
+                    console.log("Format:\n", format);
+                    console.log("XmlDoc:\n", xmlDoc); 
+                    console.log("Vector:\n", vector);
+                    console.log("Properties:\n", vector.getProperties());
+                    console.log("Source:\n", vector.getSource());
+                    console.log("Style Object:\n", style);
+                    console.log("Style:\n", vector.getStyle());
+                    console.log("Extent:\n", vector.getExtent());
+                    console.log("layers:\n", map.getLayers());                    
+                }
+            };
+            
+            xhttp.send(PEI_xml);
+        });
+        
+    </script>
+</body>
+</html>

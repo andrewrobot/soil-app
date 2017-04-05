@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">  
+    <title>Drag Box Selection</title>
+<!--    <link rel="stylesheet" href="../../../ol/v3.19.1-dist/ol.css" type="text/css" />-->
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css"> 
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>      
+    <style>
+        .ol-dragbox {
+            background-color: rgba(255,255,255,0.4);
+            border-color: rgba(100,150,0,1);
+        }
+
+        .map {
+            height: 500px;
+            width: 700px;
+            float: left;
+        }    
+        
+        #image {
+            height: 450px;
+            width: 700px;
+            display: inline;
+        }
+        
+        #frame {
+            height: 450px;
+            width: 700px;
+        }
+        
+        #clear,#label,#information {
+            display: inline;
+        }
+    </style>  
+  </head>
+  <body>
+    <div class="span"> 
+        <button id="clear" type="button">clear iframe</button>         
+        <label>Pixel value selected is: </label>  
+        <div id="information"></div> 
+    </div>     
+    <div id="map" class="map"></div>
+    <div id="image"></div>  
+    <div id="info"></div>  
+    
+    <script>
+    
+    // Add button onclick function - clear Iframe
+    //
+    $(document).ready(function() {
+      $("#clear").click(function(){
+          $("#image").empty();
+      });
+    });
+    
+    var OSM_layer = new ol.layer.Tile({
+        source: new ol.source.OSM()
+    });    
+    
+        
+    var url; // Declared to give global access? why'd you do this?   
+    var wms_layer = new ol.layer.Tile({
+      source: new ol.source.TileWMS({
+        url: 'http://127.0.0.1:8080/geoserver/ows?',
+        params: {'LAYERS': 'Canada:Canada'},  
+        serverType: 'geoserver',   
+        crossOrigin: 'anonymous'
+      })
+    });
+
+    var view = new ol.View({
+        center: [-10997148, 9569099],
+        zoom: 3
+    });
+
+    var map = new ol.Map({
+      layers: [OSM_layer, wms_layer],
+      target: 'map',
+      view: view
+    });
+
+    var viewProjection = view.getProjection();
+    var viewResolution = view.getResolution();
+
+    var container = document.getElementById('pixelValue');
+
+    map.on('click', function(evt) {
+      window.url = wms_layer.getSource().getGetFeatureInfoUrl(
+          evt.coordinate, viewResolution, viewProjection,
+          {'INFO_FORMAT': 'text/javascript'}
+      );
+      console.log(url);    
+      if (url) {
+        var parser = new ol.format.GeoJSON();
+        $.ajax({
+          url: url,
+          dataType: 'jsonp',
+          jsonpCallback: 'parseResponse'
+        }).then(function(response) {
+          var result = parser.readFeatures(response);
+          container.innerHTML = result[0].T.GRAY_INDEX;        
+        });
+      }
+    });
+    
+    // a normal select interaction to handle click
+    var select = new ol.interaction.Select();
+    map.addInteraction(select);
+
+    var selectedFeatures = select.getFeatures();
+        
+    // a DragBox interaction used to select features by drawing boxes
+    var dragBox = new ol.interaction.DragBox({
+        condition: ol.events.condition.platformModifierKeyOnly
+    });
+
+    map.addInteraction(dragBox);
+
+    var infoBox = document.getElementById('info');        
+    
+    dragBox.on('boxend', function(e) {
+      // features that intersect the box are added to the collection of
+      // selected features, and their names are displayed in the "info"
+      // div
+      var info = [];
+      var extent = dragBox.getGeometry().getExtent();
+      console.log(extent);
+      var bbox = extent.toString();
+      console.log(bbox); 
+      // console.log(url1);
+      // Return new extent
+      //
+        
+         // Projection has to match bounding box extents! Style undeclared since its listed in layers on GeoS. 
+         //
+         var urlthatworks = 'http://localhost:8080/geoserver/wms?' +         
+                            'service=WMS' +
+                            '&version=1.1.1' +
+                            '&request=GetMap' +
+                            '&layers=Canada%3ACanada' +
+                            '&styles=' +
+                            '&bbox=' + bbox +
+                            '&width=700' +
+                            '&height=700' + 
+                            '&srs=EPSG%3A3857' +
+                            '&format=application/openlayers';
+       
+        var url3 = "localhost:8080/geoserver/wms?request=GetMap&service=WMS&version=1.1.1&layers=Canada%3ACanada&styles=CECSOL&srs=EPSG%3A3857&bbox=-13863842.30880725,6575213.476126215,-11143907.094307538,8316754.728575671&height=256&width=256&format=image%2jpeg";
+        
+        var url2 = "http://localhost:8080/geoserver/wms?" + 
+                   "request=GetMap" +
+                   "&service=WMS" +
+                   "&version=1.1.1" +
+                   "&layers=Canada%3ACanada" +
+                   "&srs=EPSG%3A3857" +
+                   "&bbox=" + bbox + "&" +
+                   "&format=image%2jpeg";
+        var xhttp = new  XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                console.log(xhttp.responseText);
+            }
+        };
+        xhttp.open("GET", urlthatworks, true);
+        xhttp.send();
+        document.getElementById('image').innerHTML = '<iframe id="frame" src="' + urlthatworks + '">';
+    });
+
+    // clear selection when drawing a new box and when clicking on the map
+    dragBox.on('boxstart', function(e) {
+      selectedFeatures.clear();
+      infoBox.innerHTML = '&nbsp;';
+    });
+    map.on('click', function() {
+      selectedFeatures.clear();
+      infoBox.innerHTML = '&nbsp;';
+    });
+    
+    </script>
+  </body>
+</html>

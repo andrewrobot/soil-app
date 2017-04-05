@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Custom Control - North</title>
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.18.2/css/ol.css" type ="text/css">
+    
+    <!-- The line below is only needed for old environments like Internet 
+     Explorer and Android 4.x -->
+    <script src="http://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="http://openlayers.org/en/v3.18.2/build/ol.js"></script>
+    
+    <style>
+      .rotate-north {
+        top: 65px;
+        left: .5em;
+      }
+      .ol-touch .rotate-north {
+        top: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <script>
+      
+      // Define a namespace for the application
+      window.app = {};
+      // assign app to a variable
+      var app = window.app;
+      
+      // Define rotate to north control
+      
+      /**
+       @constructor
+       @extends {ol.control.Control}
+       @param {Object=} opt_options Control options
+      */
+      
+      app.RotateNorthControl = function(opt_options) {
+        
+        // creates variable for opt_options ???
+        var options = opt_options || {};
+        
+        // creates button for the north control & assigns to variable
+        var button = document.createElement('button');
+        button.innerHTML = 'N';
+        
+        // variable handles the north rotation -> setRotation used with view
+        var this_ = this;
+        var handleRotateNorth = function () {
+          this_.getMap().getView().setRotation(0);
+        };
+        
+        /** add an Event Listener to the button -> a click will call the 
+        * handleRotateNorth function -> false is default (order of handling  
+        * nested elements when both are called*/
+        button.addEventListener('click', handleRotateNorth, false);
+        // event listener when finger placed on screen (touchscreen)
+        button.addEventListener('touchstart', handleRotateNorth, false);
+        
+        // create div and append button to it
+        var element = document.createElement('div');
+        // believe the ol parts of class name have to do with OL css
+        element.className = 'rotate-north ol-unselectable ol-control';
+        element.appendChild(button);
+        
+        /** ?? not sure ?? links element and options above -> can't find call
+        * function for ol.control.Control in OL3 API **/
+        ol.control.Control.call(this, {
+          element: element,
+          target: options.target
+        });
+        
+      };
+      
+      /** ol method - inherit prototype methods from one constructor to another
+      * syntax: ol.inherits(ChildConstructor, ParentConstructor) -> 
+      * app.RotateNorthControl is inheriting ol.control.Control methods */
+      ol.inherits(app.RotateNorthControl, ol.control.Control);
+      
+      // Create map, give it a rotate to north control
+      
+      var map = new ol.Map({
+        /** set of controls included in maps by default: zoom, rotate,
+        * attribution (shows attributions of source layers) */
+        controls: ol.control.defaults({
+          attributionOptions: /** @type {olx.control.AttributionOptions */ ({
+            /** default is true, but should be set to false if using OSM (OSM
+            * Copyright */
+            collapsible: false
+          })
+        // adds the control below to the collection of default controls above
+        }).extend([
+          new app.RotateNorthControl()
+        ]),
+        
+        layers: [
+          // OSM basemap
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          })
+        ],
+        
+        target: 'map',
+        
+        view: new ol.View({
+          center: [0,0],
+          zoom: 3,
+          rotation: 1
+        }) 
+             
+      });      
+    </script>
+  </body>
+</html>

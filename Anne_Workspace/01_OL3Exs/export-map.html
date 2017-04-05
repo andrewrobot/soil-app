@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Map Export PNG</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.18.2/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.18.2/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <div id="map" class="map"></div>
+    
+    <div id="no-download" class="alert alert-danger" style="display: none">
+      This example requires a browser that supports the
+      <a href="http://caniuse.com/#feat=download">link download</a> attribute.
+    </div>
+    
+    <!-- @download= specifies that the target will be downloaded when a user    
+       clicks on the hyperlink 
+       - @<i class="fa fa-download"> insert font awesome icon (library)
+       - @btn btn-default bootstrap buttons -->
+    <a id="export-png" class="btn btn-default" download="map.png"><i class="fa fa-download"></i> Download PNG</a>
+    
+    <script>
+      // create map
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          }),
+          new ol.layer.Vector({
+            source: new ol.source.Vector({
+              url: 'https://openlayers.org/en/v3.18.2/examples/data/geojson/countries.geojson',
+              format: new ol.format.GeoJSON()
+            })
+          })
+        ],
+        target: 'map',
+        controls: ol.control.defaults({
+          // source attributions cannot be hidden (copyright for OSM)
+          attributionOptions: ({collapsible: false})
+        }),
+        view: new ol.View({
+          center: [0, 0],
+          zoom: 2
+        })
+      });
+      
+      // button element to var
+      var exportPNGElement = document.getElementById('export-png');
+      
+      /** map export code -> if/else to handle when browser doesn't support 
+        the link download attribute 
+        * if button has download capability, do the download*/
+      if ('download' in exportPNGElement) {
+        // when clicked, do something -> @false: order of nested elements
+        exportPNGElement.addEventListener('click', function() {
+          /** listen for a certain type of event
+           * ol.Map.once(eventType, listenerFunction)
+           * @postcompose type: after layer rendered on the canvas ->
+           look at Layer Clipping & " " with WebGL for more info*/
+          map.once('postcompose', function(event) {
+            /**  set canvas to var
+            var canvas = event.context.canvas;
+            /** get image data URL and set to href
+             * toDataURL converts the canvas drawing to 64-bit encoded PNG
+             URL -> other formats include 'image/jpeg' and '0-1' for image
+             quality -> see http://www.html5canvastutorials.com/advanced/html5-canvas-get-image-data-url/*/
+            exportPNGElement.href = canvas.toDataURL('image/png');
+          });
+          // requests an immediate map render in a synchronous manner
+          map.renderSync();
+        }, false);
+      /** if button doesn't have download capability, show the message */
+      } else {
+        //set no download div to var
+        var info = document.getElementById('no-download');
+        
+        // change style display from none so error message will be displayed
+        info.style.display = ' ';
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Raster Source</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.0/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.0/build/ol.js"></script>
+    <!-- d3.js = Data Driven Documents -> JS library to use data to change the html document -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    
+    <style>
+      .rel {
+        position: relative
+      }
+      
+      #plot {
+        pointer-events: none;
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+      }
+      
+      .bar {
+        pointer-events: auto;
+        fill: #AFAFB9;
+      }
+      
+      .bar.selected {
+        fill: green;
+      }
+      
+      .tip {
+        position: absolute;
+        background: black;
+        color: white;
+        padding: 6px;
+        font-size: 12px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        display: none;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="rel">
+      <div id="map" class="map"></div>
+      <div id="plot"></div>
+    </div>
+    
+    <script>
+      // declar var's
+      var minVgi = 0;
+      var maxVgi = 0.25;
+      var bins = 10;
+      
+      /** Calculate the Veg Greenness Index (VGI) from an input pixel -> rough
+        estimate assuming that pixel values correspond to reflectance
+        * @param {Array.<number>} pixel: an array of [R, G, B, A] values
+        * @return {number}: the VGI value for the given pixel */
+      function vgi(pixel) {
+        var r = pixel[0] / 255;
+        var g = pixel[1] / 255;
+        var b = pixel[2] / 255;
+        return (2 * g - r - b) / (2 * g + r + b);
+      }
+      
+      /** summarizing values for histograme -> not doing this section of code 
+        * @param {number} value: a VGI value
+        * @param {Object} counts: an object for keeping track of VGI counts */
+      function summarize(value, counts) {
+        var min = counts.min;
+        var max = counts.max;
+        var num = counts.values.length;
+        if (value < min) {
+          // do nothing
+        } else if (value >= max) {
+          counts.values[num - 1] += 1;
+        } else {
+          var index = Math.floor((value - min) / counts.delta);
+          counts.values[index] += 1;
+        }
+      }
+      
+      // use aerial imagery as the input data for the raster source
+      var bing = new ol.source.BingMaps({
+        // !!!***** need to get a Bing Maps Key to make this work!!!***
+        key: 'AsYBG6cB0PWHnjOnqUYRMVgF2Qv_ekvMPT06_Igl7BofcCcebR4nIPG1tqlaCqnt',
+        imagerySet: 'Aerial'
+      });
+      
+      /** Create a raster source where pixels with VGI values above a threshold
+        will be coloured green */
+      var raster = new ol.source.Raster({
+        sources: [bing],
+        /** @operation option: raster operation that will be called with data
+          from the input sources and the output will be assigned to the raster 
+          source
+          * @operationType option (not indicated): supported vales are 'pixel'
+          and 'image' -> by default, 'pixel' operations are assumed, and 
+          opterations will be called with an array of pixels from input sources
+          * Run calculations on pixel data
+          * @param {Array} pixels: list of pixels (one per source) -> will only
+          be a list of 1 pixel b/c there is only 1 source (bing)
+          * @param {Object} data: user data object -> input source = bing
+          * @return {Array} pixel: output pixel */
+        operation: function(pixels, data) {
+          /** pixel is the pixel at the 0 index of the pixels array -> only 1 
+            source so at index 0 is the bing source pixel */
+          var pixel = pixels[0];
+          // value is the return of vgi with the bing pixel
+          var value = vgi(pixel);
+          // call summarize function
+          summarize(value, data.counts);
+          // if vgi is above threshold, make pixel green with half opacity
+          if (value >= data.threshold) {
+            // rgba
+            pixel[0] = 0;
+            pixel[1] = 255;
+            pixel[2] = 0;
+            pixel[3] = 128;
+          // otherwise, set a to 0 meaning it is 100% translucent
+          } else {
+            pixel[3] = 0;
+          }
+          return pixel;
+        },
+        /** functions that will be made available to operations run in the
+          worker 
+          * add vgi and summarize functions */
+        lib: {
+          vgi: vgi,
+          summarize: summarize
+        }
+      });
+      
+      // set the 'threshold' property of raster (new output raster) to 0.1
+      raster.set('threshold', 0.1);
+      
+      // counts
+      function createCounts(min, max, num) {
+        /** creating an array (values) with a lenght of num and setting each 
+          item in the array to 0 ??????????????? */
+        var values = new Array(num);
+        for (var i = 0; i < num; ++i) {
+          values[i] = 0;
+        }
+        // return key value pairs??????????????
+        return {
+          min: min,
+          max: max,
+          values: values,
+          delta: (max - min) / num
+        };
+      }
+      
+      /** triggered before operations are run 
+        * before the raster operations are run, get the counts and threshold */
+      raster.on('beforeoperations', function(event) {
+        /** @data: an object made available to all operations -> can be used
+          by operations as a storage object (i.e. calculating statistics)
+          -> data is a member of events emitted by ol.source.Raster instances */
+        event.data.counts = createCounts(minVgi, maxVgi, bins);
+        event.data.threshold = raster.get('threshold');
+      });
+      
+      /** triggered after operations are run
+        * after raster operations completed, call the schedulePlot function */
+      raster.on('afteroperations', function(event) {
+        // schedulePlot method declared below
+        schedulePlot(event.resolution, event.data.counts, event.data.threshold);
+      });
+      
+      // map
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: bing
+          }),
+          new ol.layer.Image({
+            source: raster
+          })
+        ],
+        target: 'map',
+        view: new ol.View({
+          center: [-9651695, 4937351],
+          zoom: 13,
+          minZoom: 12,
+          maxZoom: 19
+        })
+      });
+      
+      // schedulePlot function
+      var timer = null;
+      function schedulePlot(resolution, counts, threshold) {
+        // ensure timer is null / cleared to start
+        if (timer) {
+          // Windows method to clear a timer set with the setTimeout() method
+          clearTimeout(timer);
+          timer = null;
+        }
+        /** setTimeout() method: executes after a specified # of ms
+          * plot.bind after 1000/60ms -> plot() below 
+          * bind() method: attaches 1+ event handlers for selected elements & 
+          specifies a function to run when the event occurs -> syntax:
+          $(selector).bind(event, data, function, map) 
+            event: req'd - 1+ events to attach to the elements
+            data: opt_ -
+            function: req'd - specifies the function to run when event occurs
+          -> not sure if res,co,thr are data or functions???????? */
+        timer = setTimeout(plot.bind(null, resolution, counts, threshold),
+          1000 / 60);
+      }
+      
+      // histogram var's
+      var barWidth = 15;
+      var plotHeight = 150;
+      var chart = d3.select('#plot').append('svg')
+        .attr('width', barWidth * bins)
+        .attr('height', plotHeight);
+      
+      var chartRect = chart[0][0].getBoundingClientRect();
+      
+      var tip = d3.select(document.body).append('div')
+        .attr('class', 'tip');
+      
+      function plot(resolution, counts, threshold) {
+        var yScale = d3.scale.linear()
+          .domain([0, d3.max(counts.values)])
+          .range([0, plotHeight]);
+        
+        var bar = chart.selectAll('rect').data(counts.values);
+        
+        bar.enter().append('rect');
+        
+        bar.attr('class', function(count, index) {
+          var value = counts.min + (index * counts.delta);
+          return 'bar' + (value >= threshold ? ' selected' : '');
+        })
+        .attr('width', barWidth - 2);
+        
+        bar.transition().attr('transform', function(value, index) {
+          return 'translate(' + (index * barWidth) + ', ' +
+            (plotHeight - yScale(value)) + ')';
+        })
+        .attr('height', yScale);
+        
+        bar.on('mousemove', function(count, index) {
+          var threshold = counts.min + (index * counts.delta);
+          if (raster.get('threshold') !== threshold) {
+            raster.set('threshold', threshold);
+            raster.changed();
+          }
+        });
+        
+        bar.on('mouseover', function(count, index) {
+          var area = 0;
+          for (var i = counts.values.length - 1; i >= index; --i) {
+            area += resolution * resolution * counts.values[i];         
+          }
+          tip.html(message(counts.min + (index * counts.delta), area));
+          tip.style('display', 'block');
+          tip.transition().style({
+            left: (chartRect.left + (index * barWidth) + (barWidth / 2)) + 'px', 
+            top: (d3.event.y - 60) + 'px',
+            opacity: 1
+          });
+        });
+        
+        bar.on('mouseout', function() {
+          tip.transition().style('opacity', 0).each('end', function() {
+            tip.style('display', 'none');
+          });
+        });
+        
+      }
+      
+      function message(value, area) {
+        var acres = (area / 4046.86).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return acres + ' acres at<br>' + value.toFixed(2) + ' VGI or above';
+      }
+        
+    </script>
+  </body>
+</html>

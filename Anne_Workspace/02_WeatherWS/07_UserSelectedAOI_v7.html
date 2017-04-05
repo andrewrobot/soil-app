@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draw Features & Save Extent</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.1/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.1/build/ol.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  </head>
+  
+  <body>
+    <details>
+      <summary>Prototype Details</summary>
+      <ul>
+        <li>User can select an AOI by:</li>
+        <ul>
+          <li>Creating features and saving them. A file will be written to the server with the saved features in GeoJSON format. The feature layer extent will be saved to be used as the AOI.</li>
+          <ul>
+           <li>The end goal would be to use the saved extent as a parameter in a call to the WCS on GeoServer.</li>
+          </ul>
+          <li>Uploading a Shapefile. The file will be saved onto the server for further processing</li>
+        </ul>
+      </ul>
+    </details>
+    
+    <div id="map" class="map"></div>
+    
+    <form action="07_UserSelectedAOI-upload_v6.php" method="post" enctype="multipart/form-data">
+      <fieldset>
+        <legend><b>Upload a Zipped Shapefile</b></legend>
+        <input type="file" name="shpUpload" id="shpUplaod">
+        <input type="submit" value="Upload" name="submit">
+      </fieldset>
+    </form>
+    
+    
+    <form id="coords">
+      <fieldset>
+        <legend><b>Or Specify a Bounding Box</b></legend>
+        Lower Left X / X min: <input type="text" id="xmin">
+        Upper Right X / X max: <input type="text"id="xmax">
+        <br><br>
+        Lower Left Y / Y min: <input type ="text" id="ymin">
+        Upper Right Y / Y max: <input type="text" id="ymax">
+        <span id="error" style="color:red;"></span>
+        <br><br>
+        <button type="button" onclick="clearCoords()">Clear Coordinates</button>
+        <button type="button" onclick="submitCoords()">Submit Coordinates</button>
+      </fieldset>
+    </form>
+    
+    
+    <form class="form-inline">
+      <fieldset>
+        <legend><b>Or Create Features</b></legend>
+        <label>Geometry Type: &nbsp;</label>
+        <select id="type">
+          <!-- will want to create a buffer around the point -->
+          <option value="Point">Point</option>
+          <option value="Polygon">Polygon</option>
+          <option value="Circle">Circle</option>
+          <option value="Square">Square</option>
+          <option value="Box">Box</option>
+          <option value="None" selected></option>
+        </select>
+        <br><br>
+        <button type="button" onclick="clearClick()">Clear Features</button>
+        <button type="button" onclick="writeFeats()">Submit Features</button> 
+      </fieldset>  
+    </form>
+    
+    <!-- div to display status of the file save on the server with date and time -->
+    <div id="save"></div>
+    <!-- div to display # of features saved -->
+    <div id="numFeat"></div>
+    <!-- div to display layer extent -->
+    <div id="extent"></div>
+    <!-- div to display GeoJSON output -->
+    <div id="geoJ"></div>
+    <!-- div to display the entire returned json array for testing and to display BBox extend indicated by user -->
+    <div id="result"></div>
+    <!-- div for bookmarking end of document so user always shown all of the results -->
+    <div id="end"></div>
+    
+    <script>
+      // display map section
+      
+      // raster basemap
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      // vector source -> no world wrap
+      var source = new ol.source.Vector({wrapX: false});
+      
+      // vector layer for newly drawn features
+      var vector = new ol.layer.Vector({
+        source: source
+        // if want custom styles, would indicate here (see 01_OL3Exs/draw-features.html)
+      });
+      
+      // map
+      var map = new ol.Map({
+        layers: [raster, vector],
+        target: 'map',
+        view: new ol.View({
+          center: [-11000000, 8500000],
+          zoom: 4
+        })
+      });
+      
+      
+      // reset div's
+      function clearDivs() {
+        document.getElementById("save").innerHTML = "";
+        document.getElementById("numFeat").innerHTML = "";
+        document.getElementById("extent").innerHTML = "";
+        document.getElementById("geoJ").innerHTML = "";
+        document.getElementById("result").innerHTML = "";
+        document.getElementById("error").innerHTML = "";
+      }
+      
+      
+      // submit coordinates section
+      function clearCoords() {
+        document.getElementById("coords").reset();
+        document.getElementById("xmin").setAttribute("value", "");
+        document.getElementById("xmax").setAttribute("value", "");
+        document.getElementById("ymin").setAttribute("value", "");
+        document.getElementById("ymax").setAttribute("value", "");
+        clearDivs();
+      }
+      
+      function submitCoords() {
+        clearDivs();
+        // assign current form field values to var's
+        var usrXmin = document.getElementById("xmin").value;
+        var usrXmax = document.getElementById("xmax").value;
+        var usrYmin = document.getElementById("ymin").value;
+        var usrYmax = document.getElementById("ymax").value;
+        
+        // jQuery POST
+        var bboxPost = $.post("07_UserSelectedAOI-bbox_v7.php",
+          // var's / data to sent
+          {
+            xmin: usrXmin,
+            xmax: usrXmax,
+            ymin: usrYmin,
+            ymax: usrYmax
+          },
+          // callback function
+          function(data, status) {
+            /** for testing:
+              alert("Status: " + status + "\nData: " + data);*/
+            // check if return data exists, then populate div's
+            if (data[0]) {
+              $("#error").append(data[0]);
+              // bring user to error span
+              location.href = "#error";
+            }
+            if (data[1]) {
+              var fakeExtent = data[1];
+              $("#extent").append("<p>The area of interest has been created from the extent of the bounding box you created.<ul style='list-style-type:none'><li>Bottom Left Coordinate (x, y): (" + fakeExtent[0] + ", " + fakeExtent[1] + ")</li><li>Top Right Coordiante (x, y): (" + fakeExtent[2] + ", " + fakeExtent[3] +")</li></ul></p>");
+              // bring user to results divs
+              location.href = "#extent";
+            }
+          },
+          // data return type
+          "json"
+        );
+      }
+      
+      
+      // create features section
+      
+      // draw & type var's
+      var typeSelect = document.getElementById('type');
+      var typeValue = typeSelect.value //this is to store the current typeSelect value that will be used if a user selects cancel when changing type (see onchange event below)
+      var draw; // global so can remove interaction later
+      
+      // interactions
+      function addInteraction() {
+        var value = typeSelect.value;
+        
+        if (value !== 'None') {
+          var geometryFunction, maxPoints;
+          if (value === 'Square') {
+            value = 'Circle';
+            geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+          } else if (value === 'Box') {
+            value = 'LineString';
+            maxPoints = 2;
+            geometryFunction = function(coordinates, geometry) {
+              if (!geometry) {
+                geometry = new ol.geom.Polygon(null);
+              }
+              var start = coordinates[0];
+              var end = coordinates[1];
+              geometry.setCoordinates([
+                [start, [start[0], end[1]], end, [end[0], start[1]], start]
+              ]);
+              return geometry;
+            };
+          }
+          
+          draw = new ol.interaction.Draw({
+            source: source,
+            type: (value),
+            geometryFunction: geometryFunction,
+            maxPoints: maxPoints
+          });
+          
+          map.addInteraction(draw);
+        }
+      }
+      
+      // handle change
+      typeSelect.onchange = function() {
+        // clear bbox form
+        clearCoords();
+        // when original is None or no features created, no warning
+        if (typeValue == 'None'||vector.getSource().getFeatures().length == 0) {
+          changeType();
+        } else {
+          if (confirm("Your features will be deleted. Are you sure you want to change geometry type?") == true) {
+            changeType();
+          } else {
+            typeSelect.value = typeValue;
+          }
+        }
+      };
+      
+      addInteraction();
+      
+      function changeType(){
+        map.removeInteraction(draw);
+        addInteraction();
+        clearFeats();
+        typeValue = typeSelect.value;
+      }
+      
+      // handle warning when click Clear Features
+      function clearClick() {
+        if (typeValue == 'None'||vector.getSource().getFeatures().length == 0) {
+        clearFeats();
+      } else {
+        if (confirm("Your features will be deleted. Press OK to continue or Cancel") == true) {
+          clearFeats();
+         }
+        }
+      }
+      
+      // reset features
+      function clearFeats() {
+        clearCoords();
+        clearDivs();
+        // remove features from source / vector layer
+        source.clear();
+      }
+      
+
+     function writeFeats() {
+       
+       // create an array of all drawn features
+       // returns all features on the source in a random order as {Array.<ol.Feature>} --> same as the array I created, I think --> yes can do either way
+       var allFeatures = vector.getSource().getFeatures();
+       
+       // reset div's & forms
+       clearCoords();
+       clearDivs();
+       
+       //
+       if (allFeatures.length == 0) {
+         document.getElementById("save").innerHTML = "<p>No features have been created.</p>";
+         // bring user to results div
+         location.href = "#save";
+       } else {
+         // create GeoJSON format
+         var format = new ol.format.GeoJSON();
+         // write all features in GeoJSON format
+         var svFeats = format.writeFeatures(allFeatures);
+       
+         // create array to hold feature coordinates
+         var featCoords = [];
+         
+         // initialize extent with extent of 1st feature in allFeatures
+         var drawExtent = allFeatures[0].getGeometry().getExtent();
+         // loop through allFeatures, get coords to add to array and get extents to extend final extent to extent of all created features
+         // for-in loop didn't work -> couldn't recognize feature as ol.Feature type so .getGeometry() failed
+         allFeatures.forEach(function(feature) {
+           // extent is represented by (BL(x,y), TR(x,y)) or (xMin, yMin, xMax, yMax)
+           // use .getExtent() for each feature, then use ol.extent.extend() to add the extents together.
+           var featExtent = feature.getGeometry().getExtent();
+           drawExtent = ol.extent.extend(drawExtent, featExtent);
+           // use .getCoordinates() for testing if not circle (which doesn't have that method)
+           if (typeValue !== 'Circle') {
+             featCoords.push(feature.getGeometry().getCoordinates());
+           }
+         });
+         
+         // jQuery POST to php when user saves features
+         var createPost = $.post("07_UserSelectedAOI-create_v6.php",
+           {
+             svFeats: svFeats,
+             // need .toString() -> otherwise just sends array and when written to doc actually reads "Array"
+             drawExtent: drawExtent.toString(),
+             numFeats: allFeatures.length
+           },
+           function(data, status){
+             /** for testing
+               alert("Status: " + status);*/
+             // give summary report in div's
+             $("#save").append("<p>" + data[0] + "</p>");
+             // check if file not created and values are 0 (dir issue - does not exist / permissions)
+             if (data[1]) {
+               $("#numFeat").append("<p>You have saved " + data[1] + " features.</p>");
+             }
+             if (data[2]) {
+               var trueExtent = data[2];
+               $("#extent").append("<p>The area of interest has been created from the extent of the features you submitted.<ul style='list-style-type:none'><li>Bottom Left Coordinate (x, y): (" + trueExtent[0].toString() + ", " + trueExtent[1].toString() + ")</li><li>Top Right Coordiante (x, y): (" + trueExtent[2].toString() + ", " + trueExtent[3].toString() +")</li></ul></p>");
+             }
+             if (data[3]) {
+               $("#geoJ").append("<p>Here is a summary of the features you created in GeoJSON format:<br>" + data[3] + "</p>");
+             }
+             /** for testing:
+               $("#result").append("<p>Returned Results: " + data + "</p>");
+              */
+             // bring user to last results div
+             location.href = "#geoJ";
+           },
+           // return data type
+           "json"
+         );
+         
+       }
+     }
+     
+     
+    </script>
+  </body>
+</html>

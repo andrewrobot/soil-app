@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Box Selection</title>
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.18.2/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet 
+     Explorer and Android 4.x -->
+    <script src="http://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="http://openlayers.org/en/v3.18.2/build/ol.js"></script>
+    <style>
+      .ol-dragbox {
+        background-color: rgba(255,255,255,0.4);
+        border-color: rgba(100,150,0,1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" class ="map"></div>
+    <div id="info">No countries selected
+      <!-- This displays below the map which countries were selected. 
+       ***SHOWING RESULTS**** -->
+    </div>
+    <script>
+      
+      var vectorSource = new ol.source.Vector({
+        url: 'http://openlayers.org/en/v3.18.2/examples/data/geojson/countries.geojson',
+        format: new ol.format.GeoJSON()
+      });
+      
+      var map = new ol.Map({
+        layers: [     // identifies the layers in the map
+          new ol.layer.Tile({          // basemap layer using OSM
+            source: new ol.source.OSM()
+          }),
+          new ol.layer.Vector({        // country vector layer
+            source: vectorSource
+          })
+        ],
+        renderer: 'canvas',   /** to use a specific renderer (Canvas, DOM 
+                              * and WebGL are the defaults in that order) */
+        target: 'map',    // the DOM element the map will be rendered to
+        view: new ol.View({   /** view of the map -- needed to display map 
+                              * layers **/
+          center: [0, 0],
+          zoom: 2
+        })
+      });
+      
+      // a select interaction to handle click
+      var select = new ol.interaction.Select();
+      // add the select interaction to the map
+      map.addInteraction(select);
+      
+      // get the features from the select and add to collection of features
+      var selectedFeatures = select.getFeatures();
+      
+      // a DragBox interaction to select features by drawing vector boxes
+      var dragBox = new ol.interaction.DragBox({
+        // adds the condition that DragBox only works with Ctrl key 
+        condition: ol.events.condition.platformModifierKeyOnly
+      });
+      // add the DragBox interaction to the map
+      map.addInteraction(dragBox);
+      
+      // assign the info div to variable
+      var infoBox = document.getElementById('info');
+      
+      /** features that intersect the box are added to the collection of 
+      * selected features, and their names are displayed in the info div **/
+      dragBox.on('boxend', function() { 
+      /** on.(event type, listener function) -> boxend = triggered updon drag 
+      * box end -> function below occurs at boxend **/
+        // create variable to hold collection of features
+        var info = [];
+        /** create variable for box extent (get geometry of the box and get 
+        * the extent of the geometry **/
+        var extent = dragBox.getGeometry().getExtent();
+        /** in the vector country layer, iterate through all features that 
+        * intersect the given extent and put them through the callback 
+        * function -> feature is an parameter of function so it can be used in 
+        * the function's script below **/
+        vectorSource.forEachFeatureIntersectingExtent(extent, function(feature) {
+          /** insert the feature that intersects into the selectedFeatures 
+          * collection **/
+          selectedFeatures.push(feature);
+          // insert the feature's name that intersects into the info collection
+          info.push(feature.get('name'));
+        });
+        /** when the info collection is > 0, add the feature's name to the 
+        * infoBox DOM innerHTML for display **/
+        if (info.length > 0) {
+          infoBox.innerHTML = info.join(', ');
+        }
+      });
+      
+      // clear selection when drawing a new box or clicking on the map
+      dragBox.on('boxstart', function() {
+        selectedFeatures.clear();
+        infoBox.innerHTML = '&nbsp;';
+      });
+      map.on('click', function() {
+        selectedFeatures.clear();
+        infoBox.innerHTML = '&nbsp;';
+      });
+      
+    </script>
+  </body>
+</html>

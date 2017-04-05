@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SLC_Select_v1.0</title>
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css"> 
+    <link rel="stylesheet" href="../Styles/template_base.css" type="text/css"> 
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body> 
+    <div id="container">        
+        <div id="map" class="map">
+            <div id="status" class="status">ready</div>
+        </div>
+        <div id="infoWrap">
+            <ul class="tab">
+                <li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, 'Selection')">Selection</a></li>
+                <li><a href="javascript:void(0)" id="result-link" class="tablinks" onclick="openTab(event, 'Results')">Results</a></li>
+            </ul>
+            <div id="Selection" class="tabcontent selection">
+                <h3 class="header">Selection</h3>
+                <p>Selection and query parameters will be added here.</p>
+                <div id="features"></div>
+            </div>
+            <div id="Results" class="tabcontent">
+                <h3 class="header">Results</h3>
+                <p>Processing results and interesting information will be displayed here, perhaps even for download.</p>
+                <div class="data">
+                    <div class="data-tag">Data Value:</div>
+                    <div id="pixelValue" class="data-input"></div>    
+                </div>   
+            </div> 
+        </div>
+        <button class="accordion" onclick="openAcc()">Functionality</button>
+        <div class="panel">
+          <p>This will contain some information on just what the hell is going on in these pages.</p>
+        </div>
+    </div>  
+    <script>        
+        
+        /****************************  Define Map Layers and Map  *****************************/
+        
+        
+        // Create custom style for layer
+        //
+        var myStyle = new ol.style.Style ({
+            fill: new ol.style.Fill({
+                color: 'rgba(230,249,255,.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0,154,204,0.5)'
+            })
+        });
+        
+        // Basemap layer, OSM source
+        //
+        var OSM_layer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+        
+        // SLC layer
+        // maxFeatures=500&
+        var SLC_projected = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                url: 'http://127.0.0.1:8080/geoserver/Canada/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Canada:Ontario_SLC_wgs84&outputFormat=application%2Fjson',
+                format: new ol.format.GeoJSON()                
+            }),
+            style: myStyle
+        });
+        
+        // GeoMet Weather service layer
+        // RADAR Precipitation for North America, 10min updates, 
+        // units in mm/hr
+        //
+        var GeoMet_layer = new ol.layer.Tile({
+            source: new ol.source.TileWMS({
+                url: 'http://geo.weather.gc.ca/geomet-beta',
+                params: {'LAYERS': 'RADAR_RRAI'},
+                crossOrigin: 'anonymous'  
+            })
+        });
+        // Test to see if GeoMet server is alive.
+        // This doesn't work, you gotta ping the server. It jsut creates a broken object.
+        if (GeoMet_layer){
+            console.log("service true")
+        } else {
+            console.log("service false")
+        }
+        
+        // Ontario DEM
+        //
+        var Ontario_DEM = new ol.layer.Tile({
+            source: new ol.source.TileWMS({
+                url: 'http://127.0.0.1:8080/geoserver/ows?',
+                params: {'LAYERS': 'Canada:ontario_DEM250m_slope_LL'},
+                serverType: 'geoserver',
+                crossOrigin: 'anonymous'
+            })
+        });           
+        
+        // Set view and zoom, set for Ontario
+        //
+        var view = new ol.View({
+            center: [-9446393.57, 6572991.65],
+            zoom: 4.75
+        });
+        
+        // Create map, point to target div
+        //
+        var map = new ol.Map({
+            interactions: ol.interaction.defaults({doubleClickZoom: false}),
+            layers: [OSM_layer, GeoMet_layer, Ontario_DEM], //SLC_projected,
+            target: 'map',
+            view: view
+        });
+        
+        
+        /****************************  Add select functionality   *****************************/
+        
+        
+        // Create and add select interaction 
+        //
+        var select = new ol.interaction.Select();        
+        map.addInteraction(select);
+        select.on('select', function(e) {
+            document.getElementById('features').innerHTML = '&nbsp;' +
+                e.target.getFeatures().getLength() +
+                ' selected features (last operation selected ' + e.selected.length +
+                ' and deselected ' + e.deselected.length + ' features)';
+        });
+        
+        // Get GeoMet layer pixel value -> rain/mm
+        //
+        // ** Add no return condition
+        map.on('dblclick', function(evt) {
+            var coordinate = evt.coordinate;
+            console.log(coordinate);
+            var viewResolution = /** @type {number} */ (view.getResolution());
+            var url = GeoMet_layer.getSource().getGetFeatureInfoUrl(
+                evt.coordinate, 
+                viewResolution, 
+                'EPSG:3857');
+            
+            // make ajax request to GeoServer using the fetched URL from getFeatureURL()
+            var xhttp = new  XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    var data = xhttp.responseText;
+                    console.log(data);   
+                    data = data.split("    ");
+                    if (data[3]) {
+                        var value = data[3].split("=");
+                        value = value[1].replace(/\r?\n|\r/g, " ");
+                        console.log(value);
+                    } else {
+                        console.log("no result at location");
+                    }
+                }
+            };
+            xhttp.open("GET", url, true);
+            xhttp.send();
+            
+            // make request for Ontaio DEM feature info
+            var Ontario_DEM_url = Ontario_DEM.getSource().getGetFeatureInfoUrl(
+                evt.coordinate, 
+                viewResolution, 
+                'EPSG:3857');
+            $.ajax({
+                url: Ontario_DEM_url
+            })
+            .done(function(data){
+                console.log(data);
+            })
+            .fail(function(xhr){
+                console.log("DEM: " + xhr.statusText);
+            });
+        });
+        
+        
+    </script>
+    <script src="../Script/templateFunctions.js"></script>
+</body>
+</html>

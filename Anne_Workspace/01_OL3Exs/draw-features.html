@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draw Features</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.18.2/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorers and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.18.2/build/ol.js"></script>
+  </head>
+
+  <body>
+    <div id="map" class="map"></div>
+    
+    <form class="form-inline">
+      <label>Geometry type &nbsp;</label> <!-- &nbsp = non-breaking space - real space and won't separate the entities before and after it -->
+      <select id="type">
+        <option value="Point">Point</option>
+        <option value="LineString">LineString</option>
+        <option value="Polygon">Polygon</option>
+        <option value="Circle">Circle</option>
+        <option value="Square">Square</option>
+        <option value="Box">Box</option>
+        <option value="None">None</option>
+      </select>
+    </form>
+    
+    <script>
+      // raster basemap in raster var
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      /** vector layer in source var
+       * @wrapX: wrap the world horizontally -- needs to be false for vector
+       editing across the -180deg and 180 deg meridians
+       */
+      var source = new ol.source.Vector({wrapX: false});
+      
+      // create vector layer with styles for polygon fills, lines, circles
+      var vector = new ol.layer.Vector({
+        // vector source from above
+        source: source,
+        style: new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: 'rgba(255, 255, 255, 0.2)'
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#ffcc33',
+            width: 2
+          }),
+          image: new ol.style.Circle({
+            radius: 7,
+            fill: new ol.style.Fill({
+              color: '#ffcc33'
+            })
+          })
+        })
+      });
+      
+      // create map
+      var map = new ol.Map({
+        // add layers created above
+        layers: [raster, vector],
+        // specify where map will be in DOM / html page
+        target: 'map',
+        // set up view & properties for the map
+        view: new ol.View({
+          center: [-11668400.732, 7702968.588],
+          zoom: 4
+        })
+      });
+      
+      // assigning form selection to var
+      var typeSelect = document.getElementById('type');
+     
+      // create global draw var so we can remove interaction later
+      var draw;
+      
+      function addInteraction() {
+        // form select value in value var
+        var value = typeSelect.value;
+        
+        // if selection is not None
+        if (value !== 'None') {
+          // declar var's:
+          var geometryFunction, maxPoints;
+          
+          /** if select is square
+           square is acheived by using circle mode with a geometryFunction
+           that creates a 4-sided regular polygon instead of a circle
+           * === is strict equal: returns true if operans are equal AND of the
+           same type
+           */
+          if (value === 'Square') {
+            /** uses circle style & mode with radius
+             * square can be at any angle b/c using circle mode
+             */
+            value = 'Circle';
+            geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+          // box = square parallel to edges
+          } else if (value === 'Box') {
+            /** uses lineString style and sets max # of pts to 2 for opposite 
+             corners */
+            value = 'LineString';
+            maxPoints = 2;
+            geometryFunction = function(coordinates, geometry) {
+              if (!geometry) {
+                // if no geometry, set geometry to polygon with no (null) coords
+                geometry = new ol.geom.Polygon(null);
+              }
+              
+              // start & end coord's to var's
+              var start = coordinates[0];
+              var end = coordinates[1];
+              
+              // set the coord's of the box from the 2 points
+              geometry.setCoordinates([
+                [/*coord1*/start, /*coord2*/[/*x*/start[0], /*y*/end[1]],
+                /*coord3*/end, /*coord4*/[/*x*/end[0], /*y*/start[1]],
+                /*backToCoord1*/start]
+              ]);
+              return geometry;
+            };
+          }
+          /** call draw method to draw geometry on vector layer
+           * method has preset styles and functionality like: 
+               - circle following the cursor
+               - hold shift for freeform drawing
+               - click last point to stop drawing
+           */
+          draw = new ol.interaction.Draw({
+            // assign to vector layer
+            source: source,
+            /** @type {ol.geom.GeometryType} -- value assigns the style & create
+             mode -> point, lineString & circle not identified in addInteraction
+             function above b/c these are standard types that already have 
+             methods attached to them
+             */
+            type: (value),
+            // assign the function that will draw the feature
+            geometryFunction: geometryFunction,
+            // identify max # pts
+            maxPoints: maxPoints
+          });
+          
+          // add the draw interaction to the map
+          map.addInteraction(draw);
+        }
+      }
+      
+      /** handle change event of selection -- remove interaction then call new
+       * interaction
+       */
+      typeSelect.onchange = function() {
+        map.removeInteraction(draw);
+        /** calling addInteraction function above after removing previous 
+         * interaction
+         */
+        addInteraction();
+      };
+      
+      // call addInteraction function above when page loads
+      addInteraction();
+    </script>
+  </body>
+</html>

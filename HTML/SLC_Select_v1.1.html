@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SLC_Select_v1.1</title>
+    <link rel="stylesheet" href="../Script/ol/v3.19.1-dist/ol.css" type="text/css"> 
+    <link rel="stylesheet" href="../Styles/template_base.css" type="text/css">
+    <link rel="stylesheet" href="../Styles/SLC_Select.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="../Script/ol/v3.19.1-dist/ol.js"></script>   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body> 
+    <div id="container">        
+        <div id="map" class="map">
+            <div id="status" class="status">ready</div>
+        </div>
+        <div id="infoWrap">
+            <ul class="tab">
+                <li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, 'Selection')">Selection</a></li>
+                <li><a href="javascript:void(0)" id="result-link" class="tablinks" onclick="openTab(event, 'Results')">Results</a></li>
+            </ul>
+            <div id="Selection" class="tabcontent selection">
+                <h3 class="header">Selection</h3>
+                <p class="description">To select, single click on a polygon, or hold shift and select multiple polygons. To deselect, click outside of polygon area, select one single polygon, or, while holding shift, select a polygon again to remove from selection.<br><br>
+                Double click anywhere to retrieve weather and slope information.</p>    
+                <div class="loader"></div>
+            </div>
+            <div id="Results" class="tabcontent">
+                <h4 class="header">Feature Info</h4>
+                <div id="features"></div>
+                <p>Double-Click Info:</p>
+                <form class="form">
+                    <fieldset class="fieldset">
+                        <legend class="legend">Slope (%)</legend>
+                        Slope:<br>
+                        <input type="text" name="slope" id="slope" class="form-data" value=""><br>
+                    </fieldset>
+                </form><br>
+                <form class="form">
+                    <fieldset class="fieldset">
+                        <legend class="legend">Rain (mm/hr)</legend>
+                        Rain:<br>
+                        <input type="text" name="rain" id="rain" class="form-data" value=""><br>
+                    </fieldset>
+                </form>
+                <div id="error"></div>
+            </div> 
+        </div>
+        <button class="accordion" onclick="openAcc()">Functionality</button>
+        <div class="panel">
+            <pre>Single+shift clicking on polygons creates an array of features. Double-clicking fetches pixel values for<br>precipitation (mm/hr) and slope (%)</pre>
+            <pre class="panel-info">Details: <br>                
+                Holding shift+left click adds the selected features into a select map interaction array.
+                Double clicking triggers dual ajax requests to the respective GeoMet and GeoServer map
+                services, fetching weather and terrain data for the pixel, then displaying it on screen.</pre>    
+        </div>
+    </div>  
+    <script>        
+        // Set Loader as display none by default
+        $(".loader").hide();
+        
+        
+        /****************************  Define Map Layers and Map  *****************************/
+        
+        
+        // Create custom style for layer
+        //
+        var myStyle = new ol.style.Style ({
+            fill: new ol.style.Fill({
+                color: 'rgba(230,249,255,.2)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(0,154,204,0.5)'
+            })
+        });
+        
+        // Basemap layer, OSM source
+        //
+        var OSM_layer = new ol.layer.Tile({
+            source: new ol.source.OSM()
+        });
+        
+        // SLC layer
+        // maxFeatures=500&
+        var SLC_projected = new ol.layer.Vector({
+            source: new ol.source.Vector({
+                url: 'http://127.0.0.1:8080/geoserver/Canada/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Canada:Ontario_SLC_wgs84&maxFeatures=50&outputFormat=application%2Fjson',
+                format: new ol.format.GeoJSON()                
+            }),
+            style: myStyle
+        });
+        
+        // GeoMet Weather service layer
+        // RADAR Precipitation for North America, 10min updates, 
+        // units in mm/hr
+        //
+        var GeoMet_layer = new ol.layer.Tile({
+            source: new ol.source.TileWMS({
+                url: 'http://geo.weather.gc.ca/geomet-beta',
+                params: {'LAYERS': 'RADAR_RRAI'},
+                crossOrigin: 'anonymous'  
+            })
+        });
+        // Test to see if GeoMet server is alive.
+        // This doesn't work, you gotta ping the server. It jsut creates a broken object.
+//        if (GeoMet_layer){
+//            console.log("service true")
+//        } else {
+//            console.log("service false")
+//        }
+        
+        // Ontario DEM
+        //
+        var Ontario_DEM = new ol.layer.Tile({
+            source: new ol.source.TileWMS({
+                url: 'http://127.0.0.1:8080/geoserver/ows?',
+                params: {'LAYERS': 'Canada:ontario_DEM250m_slope_LL'},
+                serverType: 'geoserver',
+                crossOrigin: 'anonymous'
+            })
+        });           
+        
+        // Set view and zoom, set for Ontario
+        //
+        var view = new ol.View({
+            center: [-9436393.57, 6479910.65],
+            zoom: 4.75
+        });
+        
+        // Create map, point to target div
+        //
+        var map = new ol.Map({
+            interactions: ol.interaction.defaults({doubleClickZoom: false}),
+            layers: [OSM_layer, Ontario_DEM, GeoMet_layer, SLC_projected], //GeoMet_layer, Ontario_DEM,
+            target: 'map',
+            view: view
+        });
+        
+        
+        /****************************  Add select functionality   *****************************/
+        
+        
+        // Create and add select interaction 
+        //
+        var select = new ol.interaction.Select();        
+        map.addInteraction(select);
+        select.on('select', function(e) {
+            openResultTab();
+//            console.log("1" + e.target.getFeatures());
+//            console.log(e.target.getFeatures().a);
+//            console.log(e.target.getFeatures());
+//            console.log(e.selected[0]);
+//            console.log(e.selected[0].T);
+//            console.log(e.selected[0].T.geometry.A);
+            document.getElementById('features').innerHTML = '&nbsp;' +
+                e.target.getFeatures().getLength() +
+                ' selected features (last operation selected ' + e.selected.length +
+                ' and deselected ' + e.deselected.length + ' features)';            
+        });
+        
+        // Get GeoMet layer pixel value -> rain/mm
+        //
+        // ** Add no return condition
+        map.on('dblclick', function(evt) {
+            var coordinate = evt.coordinate;            
+            var viewResolution = /** @type {number} */ (view.getResolution());
+            
+            // Define service layer feature URLs
+            //
+            var GeoMet_rain_url = GeoMet_layer.getSource().getGetFeatureInfoUrl(
+                evt.coordinate, 
+                viewResolution, 
+                'EPSG:3857');            
+            var Ontario_DEM_url = Ontario_DEM.getSource().getGetFeatureInfoUrl(
+                evt.coordinate, 
+                viewResolution, 
+                'EPSG:3857');
+            
+            // Make ajax request to GeoServer for GeoMet Rain data at pixel location
+            //
+            $.ajax({
+                url: GeoMet_rain_url
+            })
+            .done(function(data){
+                data = data.split("    ");
+                if (data[3]) {
+                    var value = data[3].split("=");
+                    value = value[1].replace(/\'/g, " ");
+                    $("#rain").val(value);
+                    
+                } else {
+                    $("#rain").val("no rain here");
+                }
+            })
+            .fail(function(xhr){
+                $("#error").html("Failed: " + xhr.statusText);
+            });
+        
+            // Make ajax request to GeoServer for Ontario DEM slope data at pixel location
+            //
+            $.ajax({
+                url: Ontario_DEM_url
+            })
+            .done(function(data){                
+                data = data.split("=");
+                data = data[1].split("\n");
+                slope = $.trim(data[0]);
+                if (slope == "-99999.0"){
+                    $("#slope").val("no data");
+                } else {
+                    $("#slope").val(slope);
+                }
+            })
+            .fail(function(xhr){
+                $("#error").html("Failed: " + xhr.statusText);
+            });
+            openResultTab();
+        });
+        
+        
+    </script>
+    <script src="../Script/templateFunctions.js"></script>
+</body>
+</html>

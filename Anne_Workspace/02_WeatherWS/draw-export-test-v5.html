@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Draw Features & Save</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v3.19.1/css/ol.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v3.19.1/build/ol.js"></script>
+  </head>
+  
+  <body>
+    <details>
+      <summary>Prototype Details</summary>
+      <ul>
+        <li>User can select geometry type</li>
+        <li>Onchange:</li>
+        <ul>
+          <li>if current type is None or the feature array is empty, no warning will be issued </li>
+          <li>if there are features (and current type is not NONE), user will get warning that features will be deleted</li>
+          <ul>
+            <li>if user selects OK, features will be cleared and user will be on newly selected geometry type</li>
+            <li>if user cancels, features will remain and geometry type will revert back to original</li>
+          </ul>
+        </ul>
+        <li>Creating features adds them to an array</li>
+        <li>Save Features button dispalys the length of the array and writes out the GeoJSON of the array of features in the bottom div</li>
+        <li>Clear Features button clears the screen and resets the array</li>
+      </ul>
+    </details>
+    
+    <div id="map" class="map"></div>
+    
+    <form class="form-inline">
+      <label>Geometry Type &nbsp;</label>
+      <select id="type">
+        <!-- will want to create a buffer around the point -->
+        <option value="Point">Point</option>
+        <option value="Polygon">Polygon</option>
+        <option value="Circle">Circle</option>
+        <option value="Square">Square</option>
+        <option value="Box">Box</option>
+        <option value="None" selected></option>
+      </select>
+    </form>
+    
+    <div id="buttons">
+      <button onclick="clearFeats()">Clear Features</button>
+      <button onclick="writeFeats()">Save Features</button>
+    </div>
+    
+    <!-- create div to display gml -->
+    <div id="gml"></div>
+    
+    <script>
+      // raster basemap
+      var raster = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+      
+      // vector source -> no world wrap
+      var source = new ol.source.Vector({wrapX: false});
+      
+      // vector layer for newly drawn features
+      var vector = new ol.layer.Vector({
+        source: source
+        // if want custom styles, would indicate here (see 01_OL3Exs/draw-features.html)
+      });
+      
+      // map
+      var map = new ol.Map({
+        layers: [raster, vector],
+        target: 'map',
+        view: new ol.View({
+          center: [-11000000, 8500000],
+          zoom: 4
+        })
+      });
+      
+      // draw & type var's
+      var typeSelect = document.getElementById('type');
+      var typeValue = typeSelect.value //this is to store the current typeSelect value that will be used if a user selects cancel when changing type (see onchange event below)
+      var draw; // global so can remove interaction later
+      var drawnFeats = []; // global so can reset onchange
+      
+      // interactions
+      function addInteraction() {
+        var value = typeSelect.value;
+        
+        if (value !== 'None') {
+          var geometryFunction, maxPoints;
+          if (value === 'Square') {
+            value = 'Circle';
+            geometryFunction = ol.interaction.Draw.createRegularPolygon(4);
+          } else if (value === 'Box') {
+            value = 'LineString';
+            maxPoints = 2;
+            geometryFunction = function(coordinates, geometry) {
+              if (!geometry) {
+                geometry = new ol.geom.Polygon(null);
+              }
+              var start = coordinates[0];
+              var end = coordinates[1];
+              geometry.setCoordinates([
+                [start, [start[0], end[1]], end, [end[0], start[1]], start]
+              ]);
+              return geometry;
+            };
+          }
+          
+          draw = new ol.interaction.Draw({
+            source: source,
+            type: (value),
+            geometryFunction: geometryFunction,
+            maxPoints: maxPoints
+          });
+          
+          map.addInteraction(draw);
+        }
+      }
+      
+      // handle change
+      typeSelect.onchange = function() {
+        // when original is None, no warning
+        if (typeValue == 'None'||drawnFeats.length == 0) {
+          changeType();
+        } else {
+          if (confirm("Your features will be deleted.Are you sure you want to change geometry type?") == true) {
+            changeType();
+          } else {
+            typeSelect.value = typeValue;
+          }
+        }
+      };
+      
+      addInteraction();
+      arrayAdd();
+      
+      function changeType(){
+        map.removeInteraction(draw);
+        addInteraction();
+        clearFeats();
+        arrayAdd();
+        typeValue = typeSelect.value;
+      }
+      
+      // add at drawend, take the feature from the event and store it
+      function arrayAdd(){
+        draw.on('drawend', function(event){
+          var curFeat = event.feature;
+          drawnFeats.push(curFeat);
+        })}
+      
+      // reset features
+      function clearFeats() {
+        // clear gml div
+        document.getElementById("gml").innerHTML = "";
+        // reset drawnFeats array
+        // need to make original lenght static so does not change in loop to compare i to
+        var drFtLen = drawnFeats.length;
+        for (i = 0; i < drFtLen; i++) {
+          drawnFeats.pop();
+        }
+        // remove the drawn features from the vector source
+        source.clear();
+      }
+      
+      // create a button that will then display the array of features to string into the div
+     function writeFeats() {
+       // returns all features on the source in a random order as {Array.<ol.Feature>} --> same as the array I created, I think --> yes can do either way
+       var allFeatures = vector.getSource().getFeatures();
+       var format = new ol.format.GeoJSON();
+       var svFeats = format.writeFeatures(drawnFeats);
+       console.log(svFeats);
+       document.getElementById("gml").innerHTML = "";
+       document.getElementById("gml").innerHTML = "<p>You have saved " + drawnFeats.length.toString() + " features. See the GeoJSON format below:</p><p>" + svFeats + "</p>";
+     }
+     
+    </script>
+  </body>
+</html>
