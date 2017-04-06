@@ -36,11 +36,16 @@ function loadshp(config, returnData) {
         if(typeof url != 'string') {
             var reader = new FileReader();
             reader.onload = function(e) {
+                try {
                 var URL = window.URL || window.webkitURL || window.mozURL || window.msURL,
                 zip = new JSZip(e.target.result),
                 shpString =  zip.file(/.shp$/i)[0].name,
                 dbfString = zip.file(/.dbf$/i)[0].name,
                 prjString = zip.file(/.prj$/i)[0];
+                } catch(err) {
+                    console.log(err);
+                    return(err);
+                }
                 if(prjString) {
                     proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
                     try {
