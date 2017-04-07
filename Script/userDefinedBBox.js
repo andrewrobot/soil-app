@@ -48,13 +48,11 @@
                         ]
                     ])
                 });
-                
-                // Doesn't work, gotta catch the error!
+                                
                 try {
                     polygon.getGeometry().transform('EPSG:' + coords[4][0], 'EPSG:3857');
                     source.clear();
-                    
-                    // added this
+                                      
                     shapefileSource.clear();
                     
                     vectorDraw.getSource().addFeature(polygon);

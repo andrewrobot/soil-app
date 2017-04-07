@@ -72,7 +72,7 @@ $("#file").change(function(evt) {
                    '<i class="checkmark icon"></i>' + file.name +
                    '<div id="dataSize" class="detail">' + file.size + ' kb' + 
                '</div></div></div>';
-    if(file.size > 0) {
+    if (file.size > 0) {
         $('#dataInfo').addClass('field').html(html);                            
         $('#options').slideDown(500);
         $('.preview-shapefile').removeClass('disabled');
@@ -82,7 +82,7 @@ $("#file").change(function(evt) {
 // Clear all map features and load users shapefile 
 $( '.preview-shapefile' ).click(function () {
     var dDDown = $('.drawing-dropdown');
-    if(dDDown.dropdown('get value') == "None") {
+    if (dDDown.dropdown('get value') == "None") {
         selectType = dDDown.dropdown('get value');
         map.removeInteraction(draw);
         addInteraction();
@@ -95,7 +95,7 @@ $( '.preview-shapefile' ).click(function () {
 //            }
 //            catch(err) {                
 //            }
-    if(loadShpZip())
+    if (loadShpZip())
         console.log("success");
     else
         console.log("failed");

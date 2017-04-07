@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="../Styles/Semantic-UI-CSS-master/semantic.css" type="text/css">
     <link rel="stylesheet" href="../Styles/AgCan-Soils.css" type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js" type="text/javascript"></script> 
-    <script>window.onerror = function(e){alert("an error occured");}</script>
+<!--    <script>window.onerror = function(e){alert("an error occured");}</script>-->
     <script src="../Script/shp2geojson.js-master/lib/jszip.js" type="text/javascript"></script>
     <script src="../Script/shp2geojson.js-master/lib/jszip-utils.js" type="text/javascript"></script>    
     <script src="../Script/shp2geojson.js-master/preprocess.js" type="text/javascript"></script>
@@ -105,7 +105,8 @@
                                     - none -
                                 </div>
                             </div>
-                        </div>                        
+                        </div>
+                        <div id="feature-extent" class="hidden"></div>
                     </div>
                     <h2 class="ui header">OR</h2>
                     <span class="title-main">Select area with Coordinates</span>
@@ -280,7 +281,6 @@
     </div>
     
     <script> 
-
         /****************************  Define Map Layers and Map  *****************************/
 
 
@@ -344,7 +344,26 @@
             target: 'map',
             view: view
         });
+        
+        
                    
+        /****************************  Fetch GeoTiffs from Drawing AOI  ***********************/
+
+        
+        function getTiffFromDraw(){
+            
+            var selectedLayers = [],
+                featureExtent;
+            
+            $('.selected-layers-list .content').each(function(){
+                selectedLayers.push(this.innerText());
+            })
+            
+        }
+        
+        
+       
+        
     </script> 
     <script src="../Script/semanticFunctions.js" type="text/javascript"></script>
     <script src="../Script/mapDrawingTools.js" type="text/javascript"></script>
