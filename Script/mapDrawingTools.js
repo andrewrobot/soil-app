@@ -63,7 +63,7 @@ function addInteraction() {
         draw.on('drawend', function (e) {
             if (selectType == 'Point') {
                 if (source.getFeatures().length > 0)
-                    getDrawingExtent();
+//                    getDrawingExtent();
                     removeLastFeature();                    
             }
             lastFeature = e.feature;
@@ -79,7 +79,8 @@ function addInteraction() {
 //        $('#feature-extent').
         
     } else 
-        source.clear();                       
+        source.clear();  
+        $('.coord-box').html(" - - &emsp; - -")
 };
 
 addInteraction(); 
@@ -93,7 +94,8 @@ $('.drawing-dropdown').change( function() {
 
 
 function getDrawingExtent() {  
-    if (lastFeature !== undefined) {        
+    if (lastFeature !== undefined) { 
+        console.log(lastFeature);
         var html, 
             newCoord, 
             extent = lastFeature.getGeometry().getExtent();
@@ -101,11 +103,11 @@ function getDrawingExtent() {
         newCoord = ol.proj.transformExtent([extent[0], extent[1], extent[2], extent[3]], 'EPSG:3857', 'EPSG:4326');
         html = '<div class="ui label">' +
                 '<i class="checkmark icon"></i> Extent in WGS84: ' +
-                '<div class="detail">' + 
+                '<div class="coord-box detail">' + 
                     newCoord[0].toFixed(2) + ', ' + 
-                    newCoord[1].toFixed(2) + ', ' +
+                    newCoord[1].toFixed(2) + '&emsp;' +
                     newCoord[2].toFixed(2) + ', ' + 
-                    newCoord[3].toFixed(2) + ', ' +
+                    newCoord[3].toFixed(2) +
                '</div></div>';
         
         $('#feature-extent').html(html).slideDown(500);        
