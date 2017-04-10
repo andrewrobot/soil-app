@@ -222,3 +222,8 @@ Small tweeks
 .text-align {
     text-align: center;
 }
+
+.download-draw {
+    margin-left: 14px !important;
+    margin-top: 10px !important;
+}

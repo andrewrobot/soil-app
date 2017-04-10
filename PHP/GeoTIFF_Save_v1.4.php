@@ -43,7 +43,7 @@ function writeToFile($array, $error) {
     $newFile = fopen($fileName, "w");
     if (!$newFile){        
         return "*Hmmm, something went wrong with your file save..";
-    }else{
+    } else {
         $txt = "New Extent: " . json_encode($array) . "\n" . "Error Msg: " . $error;    
         fwrite($newFile, $txt);
         fclose($newFile);
@@ -88,5 +88,77 @@ function curlPostGeoServer($minX, $minY, $maxX, $maxY) {
             <crs>EPSG:4326</crs>
             <format>GeoTIFF</format>
         </output>
-    </GetCoverage>'; // Setup the headers and post options, then execute curlPOST $ch = curl_init($url); curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml')); curl_setopt($ch, CURLOPT_HEADER, 0); curl_setopt($ch, CURLOPT_POST, 1); curl_setopt($ch, CURLOPT_POSTFIELDS, $post); curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0); curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); $ch_result = curl_exec($ch); // Setup error check. Returned cURL data should be a GeoTIFF if successful. // If there's an error, GeoServer returns an XML. Here, we check for XML since // PHP can't check (easily) for validity (incase of corruption) of .tif. // // Create XML reader object and load in returned cURL data $reader = new XMLReader(); $reader->xml($ch_result); // If XMLReader can read(returns TRUE), cURL data was XML and we send an error report if($reader->read()){ // Write error report to error log, including returned XML $errMsg = "\n\n " . date("Y-m-d H:i:s ") . " ERROR " . $_SERVER["REQUEST_TIME "] . "\n\t " . __FILE__ . "\n\t Request XML error: POST request returned without a valid GeoTIFF.\n\t Refer to XML for info:\n\t XML Response:\n\t url: {$url}\n\t xml:\n\t {$ch_result} "; file_put_contents("error/errorlog.txt ", $errMsg, FILE_APPEND); return("*GeoTiff save failed - Contact Server Administrator "); }else{ // Apply time-stamp to file and save $fileName = "../PHP/temp/geotiff ". date("Y-m-dThisa ") . ".tif "; file_put_contents($fileName, $ch_result); return($fileName); } } // close curlPostGeoServer() function runSubProcess(){ $result = exec('python ../Script/helloworld.py "Hello from python! "'); if($result){ return($result); }else{ return("*Sub Process Failed "); } } /****************** Process (round coords to 4 decimal places) *********************/ /****************** Process (write coords to file) *********************/ /****************** Process (tiff to file) *********************/ // Check that all input is present, numeric, and safe, then trim and write // to an array // if (empty($_REQUEST["minX "]) || empty($_REQUEST["minY "]) || empty($_REQUEST["maxX "]) || empty($_REQUEST["maxY "]) || !is_numeric($_REQUEST["minX "]) || !is_numeric($_REQUEST["minY "]) || !is_numeric($_REQUEST["maxX "]) || !is_numeric($_REQUEST["maxY "])) { // Throws error if inputs aren't entered or numeric. $errMsg = "*Oops, all fields are required and must be WGS84 coordinates. "; } else{ // Validate and secure input data $minX = secure_input($_REQUEST["minX "]); $minY = secure_input($_REQUEST["minY "]); $maxX = secure_input($_REQUEST["maxX "]); $maxY = secure_input($_REQUEST["maxY "]); FB::info("coords: " . $minX . ", " . $minY . ", " . $maxX . ", " . $maxY); // Write data to an array, then adjust decimal places $coords = array($minX, $minY, $maxX, $maxY); $length = count($coords); for ($x = 0; $x
-    < $length; $x++) { $coords[$x]=n umber_format((float)$coords[$x], 4, '.', ''); } // Try write coords to file, send msg on success $fileStatus=w riteToFile($coords, $errMsg); // Try curlPostGeoServer $postStatus=c urlPostGeoServer($minX, $minY, $maxX, $maxY); // Try run a sub process $pythonStatus=r unSubProcess(); } /********************** Return (corrected coordiantes) ************************/ // Send the secure, processed data back to be AJAXed in echo json_encode(array($errMsg, $coords, $fileStatus, $postStatus, $pythonStatus)); ?>
+    </GetCoverage>'; // Setup the headers and post options, then execute curlPOST 
+    
+    $ch = curl_init($url); 
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml')); curl_setopt($ch, CURLOPT_HEADER, 0); curl_setopt($ch, CURLOPT_POST, 1); 
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post); 
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0); 
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+    $ch_result = curl_exec($ch); 
+    
+    // Setup error check. Returned cURL data should be a GeoTIFF if successful. 
+    // If there's an error, GeoServer returns an XML. Here, we check for XML since 
+    // PHP can't check (easily) for validity (incase of corruption) of .tif. 
+    // 
+    // Create XML reader object and load in returned cURL data 
+    $reader = new XMLReader(); $reader->xml($ch_result); 
+    
+    // If XMLReader can read(returns TRUE), cURL data was XML and we send an error report 
+    if($reader->read()){ 
+        // Write error report to error log, including returned XML 
+        $errMsg = "\n\n " . date("Y-m-d H:i:s ") . " ERROR " . $_SERVER["REQUEST_TIME "] . "\n\t " . __FILE__ . "\n\t Request XML error: POST request returned without a valid GeoTIFF.\n\t Refer to XML for info:\n\t XML Response:\n\t url: {$url}\n\t xml:\n\t {$ch_result} "; file_put_contents("error/errorlog.txt ", $errMsg, FILE_APPEND); return("*GeoTiff save failed - Contact Server Administrator "); 
+    } else { 
+        // Apply time-stamp to file and save 
+        $fileName = "../PHP/temp/geotiff ". date("Y-m-dThisa ") . ".tif "; file_put_contents($fileName, $ch_result); return($fileName); 
+    } 
+} // close curlPostGeoServer() 
+
+
+function runSubProcess(){ 
+    $result = exec('python ../Script/helloworld.py "Hello from python! "'); 
+    if ($result) { 
+        return($result); 
+    } else { 
+        return("*Sub Process Failed "); 
+    } 
+} 
+
+/****************** Process (round coords to 4 decimal places) *********************/ 
+/****************** Process (write coords to file) *********************/ 
+/****************** Process (tiff to file) *********************/ 
+
+// Check that all input is present, numeric, and safe, then trim and write 
+// to an array 
+// 
+if (empty($_REQUEST["minX "]) || empty($_REQUEST["minY "]) || empty($_REQUEST["maxX "]) || empty($_REQUEST["maxY "]) || !is_numeric($_REQUEST["minX "]) || !is_numeric($_REQUEST["minY "]) || !is_numeric($_REQUEST["maxX "]) || !is_numeric($_REQUEST["maxY "])) { 
+    // Throws error if inputs aren't entered or numeric. 
+    $errMsg = "*Oops, all fields are required and must be WGS84 coordinates. "; 
+    
+} else {     
+    // Validate and secure input data 
+    $minX = secure_input($_REQUEST["minX "]); 
+    $minY = secure_input($_REQUEST["minY "]); 
+    $maxX = secure_input($_REQUEST["maxX "]); 
+    $maxY = secure_input($_REQUEST["maxY "]); 
+    FB::info("coords: " . $minX . ", " . $minY . ", " . $maxX . ", " . $maxY); 
+    
+    // Write data to an array, then adjust decimal places 
+    $coords = array($minX, $minY, $maxX, $maxY); 
+    $length = count($coords); 
+    for ($x = 0; $x < $length; $x++) { 
+        $coords[$x]=n umber_format((float)$coords[$x], 4, '.', ''); 
+    } 
+    // Try write coords to file, send msg on success 
+    $fileStatus=w riteToFile($coords, $errMsg); 
+    // Try curlPostGeoServer 
+    $postStatus=c urlPostGeoServer($minX, $minY, $maxX, $maxY); 
+    // Try run a sub process 
+    $pythonStatus=r unSubProcess(); 
+} 
+
+/********************** Return (corrected coordiantes) ************************/ 
+// Send the secure, processed data back to be AJAXed in 
+echo json_encode(array($errMsg, $coords, $fileStatus, $postStatus, $pythonStatus)); 
+
+?>

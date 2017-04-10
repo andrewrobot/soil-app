@@ -3,8 +3,8 @@
        
 
 // Setup some globals and fetch the selected draw tool
-var draw, lastFeature;
-var selectType = $('.drawing-dropdown').dropdown('get value');
+var draw, lastFeature, newCoord,
+    selectType = $('.drawing-dropdown').dropdown('get value');
 
 
 
@@ -13,7 +13,6 @@ var selectType = $('.drawing-dropdown').dropdown('get value');
 //
 function addInteraction() {
     var value = selectType;
-    console.log
     // Setup some geometry conditionals
     if(value !== 'None') {
         var geometryFunction, maxPoints;
@@ -63,27 +62,27 @@ function addInteraction() {
         draw.on('drawend', function (e) {
             if (selectType == 'Point') {
                 if (source.getFeatures().length > 0)
-//                    getDrawingExtent();
                     removeLastFeature();                    
             }
             lastFeature = e.feature;
             getDrawingExtent();
+            $('.bbox').val($(this).attr('placeholder'));
+            $('.download-draw').removeClass('disabled');
         });
 
         // Finally, add the draw interaction to the map
-        map.addInteraction(draw);      
-
-            
-
+        map.addInteraction(draw); 
         
-//        $('#feature-extent').
-        
-    } else 
-        source.clear();  
-        $('.coord-box').html(" - - &emsp; - -")
+    } else {
+        source.clear();
+        newCoord = null;
+        $('.coord-box').html(" - - &emsp; - -");
+//        $('.bbox').val($(this).attr('placeholder'));
+    }
 };
 
 addInteraction(); 
+
 
 // Handle drawing tool change
 $('.drawing-dropdown').change( function() { 
@@ -96,19 +95,28 @@ $('.drawing-dropdown').change( function() {
 function getDrawingExtent() {  
     if (lastFeature !== undefined) { 
         console.log(lastFeature);
-        var html, 
-            newCoord, 
+        var html,             
             extent = lastFeature.getGeometry().getExtent();
         
         newCoord = ol.proj.transformExtent([extent[0], extent[1], extent[2], extent[3]], 'EPSG:3857', 'EPSG:4326');
-        html = '<div class="ui label">' +
-                '<i class="checkmark icon"></i> Extent in WGS84: ' +
-                '<div class="coord-box detail">' + 
-                    newCoord[0].toFixed(2) + ', ' + 
-                    newCoord[1].toFixed(2) + '&emsp;' +
-                    newCoord[2].toFixed(2) + ', ' + 
-                    newCoord[3].toFixed(2) +
-               '</div></div>';
+        
+        if (selectType == "Point") {
+            html = '<div class="ui label">' +
+                    '<i class="checkmark icon"></i> Extent in WGS84: ' +
+                    '<div class="coord-box detail">' + 
+                        newCoord[0].toFixed(2) + ', ' + 
+                        newCoord[1].toFixed(2) +
+                   '</div></div>';
+        } else {
+            html = '<div class="ui label">' +
+                    '<i class="checkmark icon"></i> Extent in WGS84: ' +
+                    '<div class="coord-box detail">' + 
+                        newCoord[0].toFixed(2) + ', ' + 
+                        newCoord[1].toFixed(2) + '&emsp;' +
+                        newCoord[2].toFixed(2) + ', ' + 
+                        newCoord[3].toFixed(2) +
+                   '</div></div>';
+        }
         
         $('#feature-extent').html(html).slideDown(500);        
     } 

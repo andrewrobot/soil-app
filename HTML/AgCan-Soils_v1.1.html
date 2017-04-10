@@ -56,7 +56,7 @@
                     <div id="layer-group-acc" class="top-margin ui styled accordion">
                     </div>
                     <span class="title-sub">Selected Layers</span>
-                    <div class="accordion-margin ui styled accordion">
+                    <div class="top-margin ui styled accordion">
                         <div class="title">
                             <i class="dropdown icon"></i>
                             Current Selection
@@ -118,7 +118,7 @@
                                         <div class="ui label">
                                             min-x
                                         </div>
-                                        <input id="minX" placeholder="lower left x-axis" type="text">                                        
+                                        <input id="minX" class="bbox" placeholder="lower left x-axis" type="text">                                        
                                     </div>
                                 </div>
                                 <div class="field">
@@ -126,7 +126,7 @@
                                         <div class="ui label">
                                             min-y
                                         </div>
-                                        <input id="minY" placeholder="lower left y-axis" type="text">
+                                        <input id="minY" class="bbox" placeholder="lower left y-axis" type="text">
                                     </div>
                                 </div>                              
                             </div>
@@ -136,7 +136,7 @@
                                         <div class="ui label">
                                             max-x
                                         </div>
-                                        <input id="maxX" placeholder="top right x-axis" type="text">
+                                        <input id="maxX" class="bbox" placeholder="top right x-axis" type="text">
                                     </div>
                                 </div>
                                 <div class="field">
@@ -144,7 +144,7 @@
                                         <div class="ui label">
                                             max-y
                                         </div>
-                                        <input id="maxY" placeholder="top right y-axis" type="text">
+                                        <input id="maxY" class="bbox" placeholder="top right y-axis" type="text">
                                     </div>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@
                                         <p>For a more detailed search, please visit <a href="https://epsg.io" target="_blank">epsg.io</a>.</p>
                                         <p id="epsg-text"></p>
                                     </div>
-                                    <input id="epsg" placeholder="Enter code, or search by projection" type="text">
+                                    <input id="epsg" class="bbox" placeholder="Enter code, or search by projection" type="text">
                                     <button type="button" class="epsg-search ui icon button">
                                         <i class="search icon"></i>
                                     </button>
@@ -174,7 +174,8 @@
                                     <li>The EPSG code did not work with those coordinates. Double check the code, and your coordinate units. For more help, try <a href="https://epsg.io" target="_blank">here</a>.</li>
                                 </ui>                                    
                             </div>
-                            <div class="form-buttons two fields">
+<!--                            <div class="form-buttons">-->
+<!--
                                 <div class="field">
                                     <div class="ui blue fluid labeled icon disabled button">
                                         Download Data
@@ -188,8 +189,28 @@
                                     </div>
                                 </div>
                             </div>
+-->
+                            
+                            <div class="form-buttons two fields">
+                                <div class="field">
+                                    <div class="preview-bbox ui basic fluid labeled icon button">
+                                        Preview
+                                        <i class="add icon"></i>
+                                    </div>
+                                </div>
+                                <div class="field"></div>
+                            </div>
+                            
                         </form>
-                    </div>                    
+                    </div> 
+                    <div class="download-draw ui labeled button disabled" tabindex="0">
+                        <div class="ui black button">
+                            <i class="download icon"></i> Download
+                        </div>
+                        <a class="content ui basic black left pointing label">
+                            0 layers
+                        </a>
+                    </div>
                 </div>
             </div>
             
@@ -347,20 +368,7 @@
         
         
                    
-        /****************************  Fetch GeoTiffs from Drawing AOI  ***********************/
-
-        
-        function getTiffFromDraw(){
-            
-            var selectedLayers = [],
-                featureExtent;
-            
-            $('.selected-layers-list .content').each(function(){
-                selectedLayers.push(this.innerText());
-            })
-            
-        }
-        
+   
         
        
         
@@ -372,6 +380,7 @@
     <script src="../Script/loadDataLayers.js" type="text/javascript"></script>
     <script src="../Script/loadShapefile.js" type="text/javascript"></script>
     <script src="../Script/shapefileSelection.js" type="text/javascript"></script>
+    <script src="../Script/dataDownload.js" type="text/javascript"></script>
    
 </body>
 

@@ -70,9 +70,11 @@ $.ajax({
     // Handle a tallied list of selected files
     $('.ui.dropdown.multiple').dropdown() 
                               .change( function() {                        
-                var $list = $('.layer-dropdown').dropdown('get value');
-                var $lyrList = $('.selected-layers-list');
-
+                var count,
+                    $list = $('.layer-dropdown').dropdown('get value'),
+                    $lyrList = $('.selected-layers-list');
+        
+                // Drop into two dimentional arrays if present
                 $lyrList.empty().html( function() {
                     $.each($list, function(index, value){
                         if ($.isArray(this)) {
@@ -89,7 +91,12 @@ $.ajax({
                                         '</div></div>');  
                         }   
                     })
-                }); 
+                });
+                count = getSelectedLayers().length;
+                if (count == 1)
+                    $('.download-draw .content').html(count + ' layer');
+                else    
+                    $('.download-draw .content').html(count + ' layers');
             }); 
     })        
     // Handle server response failure
