@@ -7,7 +7,6 @@ var draw, lastFeature, newCoord,
     selectType = $('.drawing-dropdown').dropdown('get value');
 
 
-
 // Create main interaction function for adding and removing
 // drawings on the map page
 //
@@ -29,7 +28,8 @@ function addInteraction() {
                 var start = coordinates[0];
                 var end = coordinates[1];
                 geometry.setCoordinates([
-                    [start, [start[0], end[1]], end, [end[0], start[1]], start]
+                    [start, [start[0], end[1]], 
+                     end, [end[0], start[1]], start]
                 ]);
                 return geometry;
             };
@@ -66,8 +66,7 @@ function addInteraction() {
             }
             lastFeature = e.feature;
             getDrawingExtent();
-            $('.bbox').val($(this).attr('placeholder'));
-            $('.download-draw').removeClass('disabled');
+            clearBBoxErrors();
         });
 
         // Finally, add the draw interaction to the map
@@ -76,15 +75,17 @@ function addInteraction() {
     } else {
         source.clear();
         newCoord = null;
+        lastFeature = undefined;
         $('.coord-box').html(" - - &emsp; - -");
 //        $('.bbox').val($(this).attr('placeholder'));
     }
 };
-
+// Add it to the map on page load
 addInteraction(); 
 
 
 // Handle drawing tool change
+//
 $('.drawing-dropdown').change( function() { 
     selectType = $('.drawing-dropdown').dropdown('get value');
     map.removeInteraction(draw);
@@ -92,13 +93,38 @@ $('.drawing-dropdown').change( function() {
 });
 
 
+// Disable the download button when None is selected from the dropdown.
+// We add the onclick to distinguish it from other dropdown changes events
+//
+$('#draw-none').click(function() {
+    if (!$('.download-draw').hasClass('disabled'))
+        $('.download-draw').addClass('disabled');
+})
+
+
+// Clear any warning boxes or error classes from BBox form
+//
+function clearBBoxErrors() {
+    $('.bbox').val($(this).attr('placeholder'));
+    $('.download-draw').removeClass('disabled');
+    $('.bbox').closest('.field').removeClass('error');
+    $('.bbox-form').removeClass('warning');
+}
+
+
+// Fetch the extent of any drawing made on the map, reproject it
+// to WGS84, and display the coords for the user
+//
 function getDrawingExtent() {  
     if (lastFeature !== undefined) { 
-        console.log(lastFeature);
         var html,             
             extent = lastFeature.getGeometry().getExtent();
         
-        newCoord = ol.proj.transformExtent([extent[0], extent[1], extent[2], extent[3]], 'EPSG:3857', 'EPSG:4326');
+        newCoord = ol.proj.transformExtent([extent[0], 
+                                            extent[1], 
+                                            extent[2], 
+                                            extent[3]], 
+                                           'EPSG:3857', 'EPSG:4326');
         
         if (selectType == "Point") {
             html = '<div class="ui label">' +
@@ -119,29 +145,7 @@ function getDrawingExtent() {
         }
         
         $('#feature-extent').html(html).slideDown(500);        
-    } 
-//    if (map.getLayers().a[1].getSource().getFeatures()[0]) {
-//        console.log("why..");
-//        var html, 
-//            newCoord, 
-//            extent = map.getLayers().a[1]
-//                        .getSource()
-//                        .getFeatures()[0]
-//                        .getGeometry()
-//                        .getExtent();
-//        
-//        newCoord = ol.proj.transformExtent([extent[0], extent[1], extent[2], extent[3]], 'EPSG:3857', 'EPSG:4326');
-//        html = '<div class="ui label">' +
-//                '<i class="checkmark icon"></i> Extent in WGS84: ' +
-//                '<div class="detail">' + 
-//                    newCoord[0].toFixed(2) + ', ' + 
-//                    newCoord[1].toFixed(2) + ', ' +
-//                    newCoord[2].toFixed(2) + ', ' + 
-//                    newCoord[3].toFixed(2) + ', ' +
-//               '</div></div>';
-//        
-//        $('#feature-extent').html(html).slideDown(500);        
-//    }    
+    }
 };
 
 

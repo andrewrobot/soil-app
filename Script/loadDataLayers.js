@@ -37,14 +37,18 @@ $.ajax({
 
                     // Create an accordion section for each layergroup
                     $('#layer-group-acc').append('<div id="' + $lGName + '" class="title">' + 
-                                                  '<i class="dropdown icon"></i>' +
-                                                   $lGName + '<br/>' +
-                                                  '<span class="span-attr">' + $lGTxt + '</span>' +
-                                                  '</div>' + 
-                                                  '<div class="content">' +
-                                                  '<select id="dropdown-' + $lGName + '" name="attributes" multiple="" class="layer-dropdown ui fluid dropdown multiple selection">' +
-                                                  '<option value="">soil attribute</option>' +
-                                                  '</select></div>');
+                                                    '<i class="dropdown icon"></i>' +
+                                                        $lGName + '<br/>' +
+                                                    '<span class="span-attr">' + $lGTxt + '</span>' +
+                                                 '</div>' + 
+                                                 '<div class="content">' +
+                                                    '<select id="dropdown-' + $lGName + '" ' +
+                                                    ' name="attributes" ' +
+                                                    ' multiple="" ' +
+                                                    ' class="layer-dropdown ui fluid dropdown multiple selection">' +
+                                                        '<option value="">soil attribute</option>' +
+                                                    '</select>' +
+                                                 '</div>');
                     for(y = 0; y < $pubLength; y++){
                         // Get all the layers for each layergroup, write to dropdown 
                         $.ajax({
@@ -53,7 +57,10 @@ $.ajax({
                             async: false,
                         })
                             .done( function(data) {
-                                $('#dropdown-' + $lGName).append('<option value="' + data.coverageStore.name + '">' + data.coverageStore.description + '</option>');
+                                $('#dropdown-' + $lGName).append('<option value="' + 
+                                                                 data.coverageStore.name + '">' + 
+                                                                 data.coverageStore.description + 
+                                                                 '</option>');
                             })
                             // Handle failure of loser code
                             .fail( function(xhr, status) {
